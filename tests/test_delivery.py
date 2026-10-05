@@ -50,7 +50,7 @@ class DeliveryTests(unittest.TestCase):
                             for name in sorted(delivery.REQUIRED_QA)]}
         self.write("qa/bundle.json",self.qa)
         self.expected_job=studio.read_json(ROOT/"examples/demo-job.json")
-        self.expected_job.update(job_id="delivery-test",brand="와이홉",type=6)
+        self.expected_job.update(job_id="delivery-test",brand="와이홉",type=6,video_mode=studio.LEGACY_VIDEO)
         self.expected_job["product"]={"photos":[self.image],"confirmed_facts":["두 가지 색상"]}
         self.expected_job["sections"].extend([
             {"id":"6-16","kind":"image","text":"두 가지 색상. 실측 정보 미제공.","assets":[
@@ -183,6 +183,26 @@ class DeliveryTests(unittest.TestCase):
         self.assertNotIn("<script>",html)
         self.assertIn("&lt;script&gt;",html)
         self.assertIn("&quot;",html)
+
+    def test_v2_composition_does_not_require_ten_generated_stills(self):
+        self.expected_job["video_mode"] = studio.SINGLE_VIDEO
+        self.expected_job["leads"][0]["seconds"][0]["overlay"] = {
+            "mode": "editorial", "keyword": "형식 예시", "support": "", "copy_change_reason": "Synthetic approved copy"}
+        self.layout["composition_assets"] = ["hero", "color-black", "color-white"]
+        for lead, sub in zip(self.expected_job["leads"], self.layout["subtitles"]):
+            path = self.root / sub["file"]
+            path.write_text(studio.srt(lead, display=True), encoding="utf8")
+            path.with_suffix(".source-captions.srt").write_text(studio.srt(lead), encoding="utf8")
+        path = self.build()
+        manifest = delivery.validate_manifest(path, self.root, expected_job=self.expected_job)
+        self.assertEqual(manifest["video_mode"], studio.SINGLE_VIDEO)
+        self.assertEqual(manifest["composition_assets"], ["hero", "color-black", "color-white"])
+        original = self.root / manifest["subtitles"][0]["source_subtitle"]["file"]
+        original.write_text("changed original", encoding="utf8")
+        manifest["subtitles"][0]["source_subtitle"]["sha256"] = studio.digest(original)
+        self.rewrite_manifest(path, manifest)
+        with self.assertRaisesRegex(ValueError, "source captions"):
+            delivery.validate_manifest(path, self.root, expected_job=self.expected_job)
 
 
 if __name__=="__main__":unittest.main()

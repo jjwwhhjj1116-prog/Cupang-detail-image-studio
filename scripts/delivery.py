@@ -46,6 +46,9 @@ def check_entry(entry, workspace):
 
 def validate_manifest(path, workspace, expected_job=None):
     manifest = read(path)
+    from studio import LEGACY_VIDEO, SINGLE_VIDEO, VIDEO_MODES, srt
+    mode = manifest.get("video_mode", LEGACY_VIDEO)
+    check(mode in VIDEO_MODES, "Unsupported delivery video mode")
     check(manifest.get("schema_version") == 1, "Unsupported delivery schema")
     check(bool(re.fullmatch(r"[a-z0-9][a-z0-9_-]{0,79}", manifest.get("job_id", ""))), "Invalid job ID")
     check(manifest.get("brand") in {"와이홉", "유앤채"}, "Unsupported brand")
@@ -63,6 +66,7 @@ def validate_manifest(path, workspace, expected_job=None):
     videos = [x for x in items if x.get("kind") == "video"]
     check([x["id"] for x in videos] == ["lead-1", "lead-2"], "Both lead videos must be present in order")
     if expected_job is not None:
+        check("video_mode" not in expected_job or expected_job["video_mode"] == mode, "Delivery video mode differs from the plan")
         check(all(manifest.get(k) == expected_job.get(k) for k in ("job_id", "brand", "type")), "Delivery belongs to a different job")
         expected_sections = {x["id"] for x in expected_job["sections"]}
         covered = []
@@ -72,7 +76,7 @@ def validate_manifest(path, workspace, expected_job=None):
             covered.extend(ids)
         check(set(covered) == expected_sections, "Delivery is missing planned sections or includes unknown sections")
         from studio import artifacts
-        expected_assets = {x["id"] for x in artifacts(expected_job) if x["kind"] == "image"}
+        expected_assets = {x["id"] for x in artifacts(expected_job, mode=mode) if x["kind"] == "image"}
         composed = manifest.get("composition_assets", [])
         check(isinstance(composed, list) and all(isinstance(x, str) for x in composed), "Invalid composition asset IDs")
         check(len(composed) == len(set(composed)) and set(composed) == expected_assets, "Composition does not cover every planned image asset")
@@ -103,6 +107,13 @@ def validate_manifest(path, workspace, expected_job=None):
     for entry in subs:
         subpath = check_entry(entry, workspace)
         text = subpath.read_text(encoding="utf-8-sig")
+        if mode == SINGLE_VIDEO:
+            check(expected_job is not None, "Single-source delivery requires the original job for copy verification")
+            lead = next(lead for lead in expected_job["leads"] if lead["id"] == entry["lead_id"])
+            check(text.replace("\r\n", "\n") == srt(lead, display=True), "Display subtitles differ from approved job copy")
+            original = check_entry(entry["source_subtitle"], workspace).read_text(encoding="utf-8-sig")
+            check(original.replace("\r\n", "\n") == srt(lead), "Original source captions changed")
+            continue
         check(re.findall(r"(\d{2}:\d{2}:\d{2},\d{3}) --> (\d{2}:\d{2}:\d{2},\d{3})", text) == expected, "Subtitle timing must be exactly five one-second intervals")
         blocks = re.split(r"\n\s*\n", text.replace("\r\n", "\n").strip())
         check(len(blocks) == 5, "Exactly five subtitle blocks are required")
@@ -127,6 +138,8 @@ def build(layout_path, workspace, output, expected_job=None):
     manifest_path = dest / "delivery-manifest.json"
     check(not preview.exists() and not manifest_path.exists(), "Choose a new delivery folder to preserve existing outputs")
     manifest = {k: layout[k] for k in ("job_id", "brand", "type", "figma_url", "width")}
+    from studio import video_mode
+    manifest["video_mode"] = video_mode(expected_job or {}, layout.get("video_mode"))
     manifest.update(schema_version=1, items=[], subtitles=[])
     manifest["composition_assets"] = layout.get("composition_assets", [])
     def entry(relative):
@@ -146,7 +159,12 @@ def build(layout_path, workspace, output, expected_job=None):
         else:
             blocks.append(f'<img src="{src}" alt="{title}" loading="lazy">')
     for sub in layout["subtitles"]:
-        manifest["subtitles"].append({"lead_id": sub["lead_id"], **entry(sub["file"])})
+        result = {"lead_id": sub["lead_id"], **entry(sub["file"])}
+        from studio import SINGLE_VIDEO
+        if manifest["video_mode"] == SINGLE_VIDEO:
+            original = sub.get("source_subtitle_file", str(Path(sub["file"]).with_suffix(".source-captions.srt")).replace("\\", "/"))
+            result["source_subtitle"] = entry(original)
+        manifest["subtitles"].append(result)
     manifest["qa"] = entry(layout["qa_file"])
     title = html.escape(f'{layout["brand"]} · {layout["job_id"]}')
     width = int(layout["width"])

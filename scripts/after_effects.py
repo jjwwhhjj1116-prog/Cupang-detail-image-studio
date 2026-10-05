@@ -6,28 +6,41 @@ import math
 from pathlib import Path
 
 from studio import digest, read_json, relative_path, require, validate, write_json
-from typography import kinetic_design
+from typography import kinetic_design, fullbleed_design, gmarket_font
 
 
 def build(job_path, workspace, media_map_path, output, width=768, height=500, caption_band=76,
-          audio_mode="preserve", allow_missing=False):
+          audio_mode="preserve", allow_missing=False, style="kinetic", font_path=None):
     workspace, output = Path(workspace).resolve(), Path(output).resolve()
     require(output.is_relative_to(workspace), "JSX output must be inside the job workspace")
     require(output.suffix.lower() == ".jsx" and not output.exists(), "Choose a new .jsx output path")
     require(type(width) is int and type(height) is int and min(width, height) >= 4 and width % 2 == height % 2 == 0,
             "Composition dimensions must be positive even pixels")
     require(audio_mode in {"preserve", "mute"}, "Audio mode must be preserve or mute")
+    require(style in {"kinetic", "fullbleed-motion"}, "Unknown AE style")
+    font = None
+    if style == "fullbleed-motion":
+        require(caption_band == 0 and font_path is not None, "Fullbleed AE needs caption band 0 and GmarketSansTTFBold.ttf")
+        font = gmarket_font(font_path)
     job = validate(read_json(job_path), workspace)
     mapping = read_json(media_map_path)
     require(set(mapping) == {"lead-1", "lead-2"}, "Media map must contain both leads")
     data = {"schema_version": 1, "job_id": job["job_id"], "brand": job["brand"], "workspace": workspace.as_posix(),
             "width": width, "height": height, "fps": 30, "duration": 5, "caption_band": caption_band,
-            "audio_mode": audio_mode, "project_path": output.with_suffix(".aep").as_posix(), "leads": []}
+            "audio_mode": audio_mode, "style": style, "project_path": output.with_suffix(".aep").as_posix(), "leads": []}
+    if font:
+        data["font_file"] = str(font["path"])
+        data["font_sha256"] = digest(font["path"])
     missing = []
     for lead in job["leads"]:
         clips = mapping[lead["id"]]
+        if isinstance(clips, dict):
+            from media import single_source_plan
+            lead, starts, durations = single_source_plan(lead, clips["segments"])
+            clips = [{"file": clips["source_file"], "start_seconds": begin, "source_duration": duration}
+                     for begin, duration in zip(starts, durations)]
         require(isinstance(clips, list) and len(clips) == 5, "Each lead requires five ordered source videos")
-        design = kinetic_design(lead, width, height, caption_band)
+        design = fullbleed_design(lead, width, height) if style == "fullbleed-motion" else kinetic_design(lead, width, height, caption_band)
         shots = []
         for index, entry in enumerate(clips):
             require(isinstance(entry, dict), "Each source entry must be an object")
@@ -46,7 +59,8 @@ def build(job_path, workspace, media_map_path, output, width=768, height=500, ca
                               source_sha256=digest(path) if exists else None))
         data["leads"].append({"id": lead["id"], "design": design, "shots": shots})
     require(allow_missing or not missing, f"Source videos missing: {missing}")
-    template = (Path(__file__).parent / "templates/kinetic_leads.jsx").read_text(encoding="utf-8")
+    template_name = "fullbleed_leads.jsx" if style == "fullbleed-motion" else "kinetic_leads.jsx"
+    template = (Path(__file__).parent / "templates" / template_name).read_text(encoding="utf-8")
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(template.replace("__JOB_DATA__", json.dumps(data, ensure_ascii=True)), encoding="utf-8")
     report = {"status": "jsx_generated_ae_unverified", "after_effects_executed": False, "aep_created": False,
@@ -63,12 +77,14 @@ def main():
     parser.add_argument("--media-map", required=True); parser.add_argument("--output", required=True)
     parser.add_argument("--width", type=int, default=768); parser.add_argument("--height", type=int, default=500)
     parser.add_argument("--caption-band", type=int, default=76)
+    parser.add_argument("--style", choices=["kinetic", "fullbleed-motion"], default="kinetic")
+    parser.add_argument("--font", help="Official GmarketSansTTFBold.ttf for fullbleed-motion")
     parser.add_argument("--audio-mode", choices=["preserve", "mute"], default="preserve")
     parser.add_argument("--allow-missing", action="store_true", help="Prepare a clearly incomplete builder before downloads finish")
     args = parser.parse_args()
     try:
         print(build(args.job, args.workspace, args.media_map, args.output, args.width, args.height,
-                    args.caption_band, args.audio_mode, args.allow_missing))
+                    args.caption_band, args.audio_mode, args.allow_missing, args.style, args.font))
     except (ValueError, OSError, KeyError, TypeError) as error:
         parser.exit(2, f"Error: {error}\n")
 

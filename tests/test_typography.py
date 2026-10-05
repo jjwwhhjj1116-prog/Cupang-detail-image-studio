@@ -3,13 +3,14 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 import after_effects
 import media
 import studio
-from typography import kinetic_design
+from typography import kinetic_design, fullbleed_design, display_caption
 
 
 class TypographyTests(unittest.TestCase):
@@ -49,6 +50,112 @@ class TypographyTests(unittest.TestCase):
         with self.assertRaises(ValueError): kinetic_design(lead, 768, 500, 0)
         lead["seconds"][0]["accent_keyword"] = "전혀없는주장"
         with self.assertRaises(ValueError): kinetic_design(lead, 768, 500, 76)
+
+    def test_fullbleed_keeps_all_captions_without_band_and_requires_exact_font(self):
+        lead = copy.deepcopy(self.job["leads"][0])
+        lead["seconds"][0]["overlay"] = {"anchor": "bottom-left", "display_caption": "정면을\n확인해요"}
+        result = media.ass(lead, 768, 432, style="fullbleed-motion")
+        events = [line for line in result.splitlines() if line.startswith("Dialogue:")]
+        self.assertEqual(len(events), 5)
+        self.assertIn("G마켓 산스 TTF Bold", result)
+        self.assertNotIn("Malgun Gothic", result)
+        self.assertNotIn("\\p1", result)
+        self.assertFalse(fullbleed_design(lead, 768, 432)["background_box"])
+        self.assertTrue(events[0].endswith(r"정면을\N확인해요"))
+        for index, line in enumerate(events):
+            self.assertIn(f"0:00:0{index}.00,0:00:0{index+1}.00", line)
+            self.assertNotIn("\\fad", line)
+        with self.assertRaises(ValueError): media.ass(lead, 768, 432, 76, "fullbleed-motion")
+        lead["seconds"][0]["overlay"]["display_caption"] = "새로운 판매 주장"
+        with self.assertRaises(ValueError): fullbleed_design(lead, 768, 432)
+
+    def test_single_source_segments_preserve_original_and_reject_overlap(self):
+        lead = self.job["leads"][0]
+        segments = [{"second": n, "start_seconds": (n-1)*1.5, "source_duration": 1.5,
+                     "motion": "zoom-in" if n == 1 else "none"} for n in range(1, 6)]
+        edited, starts, durations = media.single_source_plan(lead, segments)
+        self.assertEqual(starts, [0, 1.5, 3, 4.5, 6])
+        self.assertEqual(durations, [1.5] * 5)
+        self.assertEqual([s["caption"] for s in edited["seconds"]], [s["caption"] for s in lead["seconds"]])
+        self.assertNotIn("motion", lead["seconds"][0])
+        segments[1]["start_seconds"] = 1
+        with self.assertRaises(ValueError): media.single_source_plan(lead, segments)
+
+    def test_editorial_has_two_independent_layers_and_retains_original_copy(self):
+        lead = copy.deepcopy(self.job["leads"][0])
+        original = lead["seconds"][0]["caption"]
+        lead["seconds"][0]["overlay"] = {"mode": "editorial", "keyword": "와이홉", "support": "매일의 캡",
+            "anchor": "top-left", "position": [.08,.2], "keyword_font_size": 70, "support_font_size": 20,
+            "copy_change_reason": "User authorized fashion editorial copy; original preserved."}
+        design = fullbleed_design(lead, 768, 432)
+        shot = design["shots"][0]
+        self.assertEqual(shot["caption"], original)
+        self.assertEqual(display_caption(lead["seconds"][0]), "와이홉\n매일의 캡")
+        self.assertEqual(lead["seconds"][0]["caption"], original)
+        key, support = shot["text_layers"]
+        self.assertLess(support["font_size"], key["font_size"])
+        self.assertGreater(support["start"], key["start"])
+        self.assertEqual(key["end"], support["end"])
+        result = media.ass(lead, 768, 432, style="fullbleed-motion")
+        self.assertIn("Dialogue: 2,0:00:00.00,0:00:01.00", result)
+        self.assertIn("Dialogue: 3,0:00:00.06,0:00:01.00", result)
+        self.assertIn(r"\bord0.45", result)
+        self.assertNotIn("\\p1", result)
+        self.assertIn("와이홉", media.rendered_srt(lead, design))
+        self.assertIn(original, studio.srt(lead))
+
+    def test_editorial_copy_changes_require_reason_and_valid_hierarchy(self):
+        lead = copy.deepcopy(self.job["leads"][0])
+        overlay = {"mode":"editorial", "keyword":"제품", "support":"설명"}
+        lead["seconds"][0]["overlay"] = overlay
+        with self.assertRaisesRegex(ValueError, "copy_change_reason"): display_caption(lead["seconds"][0])
+        overlay["copy_change_reason"] = "Explicit edit"
+        for bad in ({"position":[float("nan"), .1]}, {"position":[.1, .99]},
+                    {"keyword_font_size":400}, {"keyword_font_size":60,"support_font_size":50},
+                    {"color":"neon"}, {"enabled":"false"}, {"support": []}):
+            lead["seconds"][0]["overlay"] = dict(overlay, **bad)
+            with self.subTest(bad=bad), self.assertRaises(ValueError): fullbleed_design(lead,768,432)
+
+    def test_editorial_disabled_shot_does_not_silently_show_original(self):
+        lead = copy.deepcopy(self.job["leads"][0])
+        lead["seconds"][0]["overlay"] = {"mode":"editorial", "keyword":"제품", "support":"",
+            "enabled":False, "copy_change_reason":"No safe background; preserve product view."}
+        design = fullbleed_design(lead,768,432)
+        self.assertEqual(design["shots"][0]["text_layers"], [])
+        self.assertEqual(display_caption(lead["seconds"][0]), "")
+        self.assertEqual(media.ass(lead,768,432,style="fullbleed-motion").count("Dialogue:"), 4)
+
+    def test_editorial_text_is_escaped_and_ae_retains_independent_layers(self):
+        lead = self.job["leads"][0]
+        lead["seconds"][0]["overlay"] = {"mode":"editorial", "keyword":r"캡{\pos(0,0)}", "support":"확인",
+            "copy_change_reason":"Synthetic escaping fixture", "keyword_font_size":28, "support_font_size":12}
+        result = media.ass(lead,768,432,style="fullbleed-motion")
+        self.assertIn(media.ass_escape(lead["seconds"][0]["overlay"]["keyword"]), result)
+        studio.write_json(self.job_path, self.job)
+        fake_font = self.root / "font.ttf"; fake_font.write_bytes(b"unit test only")
+        with patch("after_effects.gmarket_font", return_value={"path":fake_font}):
+            output = after_effects.build(self.job_path,self.root,self.map_path,self.root/"editorial.jsx",
+                width=768,height=432,caption_band=0,allow_missing=True,style="fullbleed-motion",font_path=fake_font)
+        report = studio.read_json(output.with_suffix(".ae-plan.json"))
+        self.assertFalse(report["after_effects_rendered"])
+        self.assertEqual(len(report["data"]["leads"][0]["shots"][0]["text_layers"]),2)
+        self.assertIn("editorialText(comp",output.read_text(encoding="utf-8"))
+
+    def test_fullbleed_ae_uses_one_source_per_lead_and_never_claims_render(self):
+        mapping = {f"lead-{n}": {"source_file": f"source/lead-{n}-storyboard.mp4", "segments": [
+            {"second": s, "start_seconds": (s-1)*1.5, "source_duration": 1.5} for s in range(1, 6)]} for n in (1, 2)}
+        studio.write_json(self.map_path, mapping)
+        fake_font = self.root / "font.ttf"
+        fake_font.write_bytes(b"explicit unit-test fixture, not a real font")
+        with patch("after_effects.gmarket_font", return_value={"path": fake_font}):
+            output = after_effects.build(self.job_path, self.root, self.map_path, self.root / "v2.jsx",
+                width=768, height=432, caption_band=0, allow_missing=True, style="fullbleed-motion", font_path=fake_font)
+        report = studio.read_json(output.with_suffix(".ae-plan.json"))
+        self.assertFalse(report["after_effects_rendered"])
+        for lead in report["data"]["leads"]:
+            self.assertEqual(len({shot["file"] for shot in lead["shots"]}), 1)
+            self.assertEqual(lead["design"]["font_postscript"], "GmarketSansTTFBold")
+        self.assertNotIn("addSolid", output.read_text(encoding="utf8"))
 
     def test_ae_retime_preserves_selected_source_window_and_offset(self):
         self.mapping["lead-2"][4].update(start_seconds=.25, source_duration=.5)

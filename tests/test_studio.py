@@ -16,6 +16,7 @@ import media
 class StudioTests(unittest.TestCase):
     def setUp(self):
         self.job = studio.read_json(ROOT / "examples" / "demo-job.json")
+        self.job["video_mode"] = studio.LEGACY_VIDEO  # Preserve historical five-source coverage.
         temp_root = ROOT / "work" / "test-runtime"
         temp_root.mkdir(parents=True, exist_ok=True)
         self.temp = tempfile.TemporaryDirectory(dir=temp_root)

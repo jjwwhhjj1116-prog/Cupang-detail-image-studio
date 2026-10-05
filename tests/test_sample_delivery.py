@@ -32,6 +32,7 @@ class SampleDeliveryTests(unittest.TestCase):
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name)
         self.job = studio.read_json(ROOT / "examples/demo-job.json")
+        self.job["video_mode"] = studio.LEGACY_VIDEO
         photo = self.root / self.job["product"]["photos"][0]
         photo.parent.mkdir(parents=True)
         Image.new("RGB", (100, 200), "white").save(photo)
@@ -125,6 +126,38 @@ class SampleDeliveryTests(unittest.TestCase):
         subtitle.write_text("changed", encoding="utf8")
         with self.assertRaisesRegex(ValueError, "File changed"):
             sample_delivery.validate_package(path)
+
+    def test_v2_approved_editorial_copy_and_originals_travel_together(self):
+        self.job["video_mode"] = studio.SINGLE_VIDEO
+        self.job["leads"][0]["seconds"][0]["overlay"] = {
+            "mode": "editorial", "keyword": "가상 타이포", "support": "형식 예시", "copy_change_reason": "Synthetic approved copy fixture"}
+        self.job["leads"][0]["seconds"][2]["overlay"] = {
+            "mode": "editorial", "keyword": "사진에 집중", "support": "", "enabled": False, "copy_change_reason": "Synthetic omitted overlay fixture"}
+        studio.write_json(self.job_path, self.job)
+        for lead, entry in zip(self.job["leads"], self.layout["leads"]):
+            subtitle = self.root / entry["subtitle"]
+            subtitle.write_text(studio.srt(lead, display=True), encoding="utf8")
+            subtitle.with_suffix(".source-captions.srt").write_text(studio.srt(lead), encoding="utf8")
+        path = self.build()
+        manifest = sample_delivery.validate_package(path)
+        self.assertEqual(manifest["video_mode"], studio.SINGLE_VIDEO)
+        first = manifest["leads"][0]
+        self.assertIn("가상 타이포\n형식 예시", (path.parent / first["subtitle"]["file"]).read_text(encoding="utf8"))
+        original = path.parent / first["source_subtitle"]["file"]
+        self.assertEqual(original.read_text(encoding="utf8"), studio.srt(self.job["leads"][0]))
+        original.write_text("changed original", encoding="utf8")
+        first["source_subtitle"]["sha256"] = studio.digest(original)
+        studio.write_json(path, manifest)
+        with self.assertRaisesRegex(ValueError, "source captions"):
+            sample_delivery.validate_package(path)
+
+    def test_historical_job_can_repackage_without_changing_its_content(self):
+        self.job.pop("video_mode")
+        studio.write_json(self.job_path, self.job)
+        before = self.job_path.read_bytes()
+        path = sample_delivery.build(self.job_path, self.layout_path, self.root, self.root / "legacy-copy", mode=studio.LEGACY_VIDEO)
+        self.assertEqual(sample_delivery.validate_package(path)["video_mode"], studio.LEGACY_VIDEO)
+        self.assertEqual(self.job_path.read_bytes(), before)
 
 
 if __name__ == "__main__":

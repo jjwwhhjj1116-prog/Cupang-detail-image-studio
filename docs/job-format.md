@@ -4,13 +4,14 @@
 
 Python 3.11 이상과 표준 라이브러리만 사용합니다. `studio.py`는 원고 보존, 계획, 초 단위 자막, 진행 상태와 증빙 검사를 담당합니다. Image·Flow·Figma 호출은 저장소의 Codex 스킬이 담당하며, 이 CLI 자체에는 공급자 네트워크 호출이 없습니다.
 
-## v1 데이터
+## 입력 데이터와 영상 모드
 
 `examples/demo-job.json`은 **가상의 형식 예제**입니다. 실제 제품 사진·원고·검증된 TYPE6 전체 템플릿을 제공하는 파일이 아닙니다. `input/demo-reference.png`를 동봉하지 않았으므로 형식 검사는 가능하지만 실제 제작 계획은 사진이 없으면 실패합니다.
 
 | 필드 | 규칙 |
 |---|---|
 | `schema_version` | 정수 `1` |
+| `video_mode` | 새 계획 기본 `single-source-v2`. 이전 계획 재개 전용 `legacy-five-source-v1` |
 | `job_id` | 영문 소문자·숫자·하이픈으로 된 고유 이름 |
 | `brand` | `와이홉` 또는 `유앤채` |
 | `type` | 정수 1~7 |
@@ -23,8 +24,11 @@ Python 3.11 이상과 표준 라이브러리만 사용합니다. `studio.py`는 
 | 영상 섹션 | `kind: video`, `asset_id: lead-1` 또는 `lead-2`; 각 리드를 정확히 한 번 연결 |
 | `leads` | `lead-1`, `lead-2` 순서로 정확히 두 개 |
 | `leads[].fps` | 정수 `30` |
+| `leads[].reference_images` | 선택: 리드당 상대 경로 1~5개. 리드끼리 재사용 가능. 미지정 시 product.photos 앞 다섯 개 |
+| `leads[].storyboard_prompt` | 선택: 다섯 장면을 담은 단일 Flow 프롬프트. 없으면 초별 원고로 결합 |
 | `leads[].seconds` | `second: 1`부터 `5`까지 순서대로 정확히 다섯 개 |
 | 각 초 | `action`, `caption`, `image_prompt`, `video_prompt` 모두 필수 |
+| 각 초의 `overlay` | 선택: 승인된 타이포 카피·위치. editorial이면 keyword/support/copy_change_reason을 기록하고 원 caption은 보존 |
 
 번호 1은 0.000~1.000초, 번호 5는 4.000~5.000초입니다. 각 구간은 30프레임이고 마지막 경계는 다음 구간에 속합니다. 리드 하나는 150프레임, 5초입니다. 두 리드를 합쳐 10초짜리 하나로 만들지 않습니다.
 
@@ -58,9 +62,33 @@ python scripts/studio.py plan jobs/sample/job.json --workspace jobs/sample --out
 
 `ingest`는 `6-1)` 같은 제목을 찾아 원문을 저장한 **초안**만 만듭니다. Codex가 원문을 읽고 이미지·영상·텍스트 슬롯, 사진 경로, 확인 사실, 10개 초 단위 장면을 채운 뒤 `validate`와 `plan`을 실행합니다. 분류가 끝나지 않은 초안을 준비 완료로 표시하지 않습니다.
 
-계획 폴더에는 이미지 프롬프트, 섹션별 전체 이미지 목록 `image-tasks.json`, `lead-1.srt`, `lead-2.srt`, 프레임 경계를 담은 `timeline.json`, 필수 산출물을 추적하는 `state.json`이 생깁니다. 이미지 산출물은 일반 섹션 이미지와 영상용 시작 이미지 10개, 영상은 리드 2개입니다. `detail-page`는 완성 결과 묶음을 대표하는 artifact입니다.
+새 계획 폴더에는 정적 이미지용 `image-tasks.json`, 리드별 단일 `*-storyboard.txt`, 두 요청을 담은 `flow-tasks.json`, 표시 SRT와 원문 `*.source-captions.srt`, 10개 편집 구간의 `timeline.json`, 산출물·요청 상태의 `state.json`이 생깁니다. `image_prompt`는 장면 설계 자료이며 시작 이미지 열 장을 자동 생성하는 명령이 아닙니다. `detail-page`는 전체 결과 묶음을 대표하는 artifact입니다.
 
-같은 작업 파일로 다시 실행하면 기존 상태를 보존합니다. 작업 파일이 변경되면 새 계획 폴더를 사용합니다. 이미 생성한 결과물의 재사용은 이미지·원고·템플릿 버전이 여전히 일치하는지 Codex가 확인한 뒤 기록합니다.
+입력 job 스키마는 `1`을 유지하며 v2 실행 상태는 `schema_version:2`, `video_mode:single-source-v2`입니다. 같은 파일로 다시 실행하면 상태와 이미 예약한 요청을 보존합니다. 이전 상태에 video_mode가 없으면 legacy로 읽고 변환하지 않습니다. 기존 상태의 모드를 바꾸는 요청은 실패합니다. 작업 파일을 변경할 때 새 계획 폴더를 사용하되 이미 제출한 Flow 결과를 먼저 대조하며 새 폴더가 추가 생성 승인을 뜻하지는 않습니다.
+
+## 생성 요청 한 번을 예약하고 기록
+
+리드마다 참조 이미지 최대 다섯 개를 선택·재사용하고, 다섯 장면의 타임스탬프 스토리보드를 한 번 제출합니다. 5초 생성이 없으면 현재 UI에서 지원하는 길이의 원본 하나를 생성합니다. 최종 5초의 정확한 타이밍은 로컬에서 편집합니다. 출력은 x1이며 장면별 다섯 생성이나 자동 재요청은 하지 않습니다.
+
+제출 전 실제 Flow 화면을 확인하고 다음 형식의 증빙을 작업 폴더에 저장합니다. 아래 값은 형식 설명이며 실제 비용·모델을 대신하지 않습니다.
+
+```json
+{
+  "provider": "Google Flow",
+  "model": "현재 UI에 표시된 모델",
+  "output_count": 1,
+  "source_duration_seconds": 8,
+  "credit_cost_ui": "현재 UI에 표시된 비용 문구 그대로",
+  "ui_evidence_file": "qa/lead-1-flow-settings.png",
+  "ui_evidence_sha256": "위 실제 스크린샷의 SHA-256"
+}
+```
+
+```powershell
+python scripts/studio.py generation-start jobs/sample/sample-plan/state.json lead-1 qa/lead-1-flow-settings.json
+```
+
+성공하면 `lead-1-generation-01`은 `reserved`가 됩니다. 그 뒤 실제 UI에서 한 번 생성합니다. 같은 요청은 다시 예약할 수 없으며 결과가 불명확하면 기존 Flow 카드·다운로드부터 확인합니다. `flow-tasks.json`만 보고 다시 제출하면 안 됩니다. 이 CLI는 공급자를 호출하지 않으며 실제 요청 횟수는 공급자 결과 기록과 함께 검수합니다.
 
 ## 리드 영상 두 개만 먼저 검증
 
@@ -70,12 +98,12 @@ python scripts/studio.py plan jobs/sample/job.json --workspace jobs/sample --out
 python scripts/studio.py plan jobs/sample/sample-job.json --workspace jobs/sample --output jobs/sample/sample-plan --scope lead-sample
 ```
 
-샘플 계획은 리드용 시작 이미지 10개, Flow 원본 클립 10개(`lead-1-source-01`~`05`, `lead-2-source-01`~`05`), 편집 영상 2개, SRT 2개를 필수 산출물로 추적합니다. 제품 원본 사진과 샘플 작업 파일은 해시를 확인하며 그대로 보존합니다. 샘플에서 사용하지 않는 상세 이미지 프롬프트는 출력하지 않습니다.
+새 샘플의 필수 산출물은 **여섯 개**입니다: `lead-1-source`, `lead-1-subtitles`, `lead-1`, `lead-2-source`, `lead-2-subtitles`, `lead-2`. 각각 Flow 원본·표시 자막·최종 MP4이며 원본과 최종 파일을 덮어쓰거나 같은 파일로 등록할 수 없습니다. 원문 자막은 표시 SRT 옆 `*.source-captions.srt`로 함께 검증합니다. 원본 사진·선택 참조·작업 파일은 해시를 확인하며 샘플에서 사용하지 않는 정적 이미지 프롬프트는 출력하지 않습니다.
 
-이미지·편집 영상은 기존 QA 형식을 사용합니다. 원본 클립은 `product_fidelity`, `scene_action`, `source_trace` 검사에 실제 Flow 결과 식별자와 관찰 증빙을 기록합니다. SRT는 `subtitle_timing`, `caption_match` 검사를 기록하며, 도구가 원고의 정확한 1초 구간·문구와 다시 대조합니다.
+원본 QA는 `product_fidelity`, `scene_action`, `source_trace`와 함께 `generation_request_id`, 실제 `provider_result_id`, `request_count:1`, `output_count:1`을 기록합니다. 예약 없이 원본을 등록할 수 없습니다. 등록한 요청은 `source_verified`가 됩니다. SRT는 `subtitle_timing`, `caption_match`로 원문 또는 명시된 editorial 카피와 정확히 대조합니다. 화면 카피를 숨기는 `overlay.enabled:false`도 사유를 기록해야 하며 그 초의 표시 cue만 생략하고 원문은 보존합니다. 카피를 줄이면서 제품 주장·효능을 추가하지 않습니다.
 
 ```powershell
-python scripts/studio.py record jobs/sample/sample-plan/state.json lead-1-source-01 flow/lead-1-01.mp4 qa/lead-1-source-01.json
+python scripts/studio.py record jobs/sample/sample-plan/state.json lead-1-source flow/lead-1-storyboard.mp4 qa/lead-1-source.json
 python scripts/studio.py record jobs/sample/sample-plan/state.json lead-1-subtitles assets/lead-1.srt qa/lead-1-subtitles.json
 python scripts/studio.py complete jobs/sample/sample-plan/state.json
 ```
@@ -88,27 +116,27 @@ python scripts/studio.py complete jobs/sample/sample-plan/state.json
 python scripts/studio.py plan jobs/sample/full-job.json --workspace jobs/sample --output jobs/sample/full-plan --scope full --reuse-sample jobs/sample/sample-plan/state.json
 ```
 
-같은 작업 폴더·job ID·브랜드·타입·원본 사진·리드 원고인 경우에만 샘플 검증을 다시 통과한 이미지 10개와 편집 영상 2개를 재사용합니다. 원본 클립과 자막은 샘플 폴더/상태에 보존됩니다. 재개된 전체 계획은 `in_progress`, `page_complete: false`이며 상세 이미지와 납품 묶음 검수를 계속해야 합니다. 리드 문구나 사진이 바뀌면 기존 샘플을 통과 결과로 재사용하지 않습니다.
+같은 작업 폴더·job ID·브랜드·타입·원본 사진·리드 원고인 경우에만 다시 검증한 여섯 산출물과 소비한 요청 슬롯을 재사용합니다. 재개된 전체 계획은 `in_progress`, `page_complete:false`이며 정적 상세 이미지와 납품 검수를 계속합니다. 리드 문구·선택 참조·사진이 바뀌면 기존 샘플을 통과 결과로 재사용하지 않습니다.
 
-## 1초 단위 영상 조립
+이전 24개 산출물 샘플은 `legacy-five-source-v1`입니다. 기존 상태 파일은 그대로 재개할 수 있고 당시 원본 10개·시작 이미지·QA는 보존됩니다. 과거 형식을 재현해야 할 때만 `--video-mode legacy-five-source-v1`을 명시합니다. 이것은 새 작업에서 열 개 영상을 생성하라는 기본값이 아닙니다.
 
-Codex가 Flow에서 각 장면의 원본 영상을 생성한 다음, 영상마다 필요한 동작이 보이는 연속 1초 구간을 선택합니다. `--starts`는 그 시작 위치입니다. 움직임이 완성되지 않거나 제품 형태가 바뀌면 원본을 재생성합니다.
+## 단일 원본의 1초 단위 편집
+
+한 Flow 원본에서 실제로 검수한 다섯 연속 구간의 시작점·길이를 edit-map의 `segments`에 기록합니다. 각 구간은 최종 1초가 되고 선택 구간 밖 프레임은 사용하지 않습니다. 전체 구조·원본 회전·느린 동작·타이포 계약은 [fullbleed-v2.md](fullbleed-v2.md)에 있습니다.
 
 ```powershell
-python scripts/media.py jobs/sample/job.json --lead lead-1 --clips jobs/sample/flow/01.mp4 jobs/sample/flow/02.mp4 jobs/sample/flow/03.mp4 jobs/sample/flow/04.mp4 jobs/sample/flow/05.mp4 --starts 0 1.2 0.5 2 0 --output jobs/sample/assets/lead-1.mp4 --width 688 --height 400 --mute
+python scripts/media.py jobs/sample/job.json --lead lead-1 --source jobs/sample/flow/lead-1-storyboard.mp4 --edit-map jobs/sample/edit/lead-1.json --output jobs/sample/assets/lead-1.mp4 --width 768 --height 432 --style fullbleed-motion --caption-band 0 --font .tools/fonts/gmarket-sans/GmarketSansTTFBold.ttf --mute
 ```
 
-위 크기는 사용법 예시입니다. 실제 크기는 Figma 영상 슬롯을 측정하여 비율을 보존하고 짝수 픽셀로 정합니다. 780px 전체 페이지 너비를 영상 슬롯 너비로 가정하지 않습니다. 화면 비율이 다르면 제품을 잘라내지 않고 여백을 추가합니다.
+위 크기는 사용법 예시입니다. 실제 Figma 슬롯 비율과 생성 구도를 함께 맞추고 짝수 픽셀로 정합니다. 780px 페이지 너비를 영상 슬롯 너비로 가정하지 않습니다. fullbleed는 화면을 채우기 위해 비율 유지 확대·중앙 크롭을 사용하므로 제품이 잘리지 않는지 검수합니다. 검은 여백으로 제품 잘림을 해결하지 않습니다.
 
-제품이 화면 하단까지 차는 장면에는 `--caption-band 76`처럼 전용 하단 자막 띠를 지정할 수 있습니다. 기본값 `0`은 기존 영상 위 자막 배치를 유지합니다. 예를 들어 558×363 Figma 슬롯에 맞춘 `--width 768 --height 500 --caption-band 76`은 영상을 상단 768×424 영역 안에 비율대로 축소하고, 하단 76px를 검정 자막 띠로 비워 둡니다. 영상은 자르지 않으며 남는 공간은 모든 장면에 동일한 방식으로 검정 여백 처리합니다.
+새 스타일은 **Gmarket Sans Bold·검은 하단바 없음·caption_band 0**입니다. 제품을 피해 표시 카피 위치와 크기를 정하며 글꼴 대체를 허용하지 않습니다. `ffmpeg`, `ffprobe`가 PATH에 없으면 전체 경로로 지정합니다. FFmpeg에는 H.264와 libass가 필요합니다. `media.py` 자체는 설치·다운로드하지 않습니다.
 
-자막은 띠 중앙에 ASS 좌표로 배치합니다. 명시적 여러 줄이나 긴 자막은 띠에 맞춰 글꼴 크기를 줄이며, 읽을 수 있는 최소 크기를 확보할 수 없으면 실패 처리합니다. 1초 구간과 총 150프레임은 변하지 않습니다. 실제 결과에서 글자 크기·한글 표시·띠 밖으로 넘침을 확인합니다. `.probe.json`과 `.sources.json`에 `caption_band_px`를 기록하며 원본 클립·별도 음원 및 기존 오디오 선택 방식은 보존합니다.
-
-`ffmpeg`, `ffprobe` 실행 파일이 필요합니다. PATH에 없으면 `--ffmpeg <전체 경로> --ffprobe <전체 경로>`로 지정합니다. 스크립트가 설치하거나 다운로드하지 않습니다. FFmpeg 빌드는 H.264 인코더와 `subtitles`/libass 필터를 지원해야 하며, 한글 자막용 `Malgun Gothic` 글꼴이 있어야 합니다.
+이전 `--clips` 다섯 파일·`--starts`·`--caption-band 76`·`--style kinetic`·Malgun 글꼴은 v1 재개를 위해 남아 있습니다. 새 v2 QA는 검은 자막띠·다중 원본·다른 글꼴 결과를 거부합니다.
 
 음성 정책은 명령에 명시합니다. `--mute`로 무음, `--audio <파일>`로 별도 확인한 사운드트랙을 사용합니다. 원본 Flow 음성은 자동으로 유지하지 않습니다. 별도 음원은 5초에 맞춰 잘라내거나 무음으로 채웁니다.
 
-각 구간을 30fps·30프레임으로 정규화하고, 합친 150프레임에 ASS 자막을 씁니다. 출력은 MP4·ASS·SRT, 기계 검사 결과인 `.probe.json`, 원본 클립 해시와 사용 구간을 담은 `.sources.json`입니다. 원본 클립은 보존합니다. 짧아서 30프레임을 확보할 수 없는 소스는 실패 처리합니다. 기존 출력 파일은 덮어쓰지 않습니다.
+각 구간을 30fps·30프레임으로 정규화하고 합친 150프레임에 ASS 타이포를 씁니다. 출력은 MP4·ASS·표시 SRT·원문 `.source-captions.srt`, `.probe.json`, 원본 해시·구간의 `.sources.json`, 실제 글꼴 선택 `.font.json`입니다. editorial 변경 이력도 보존합니다. 짧은 검수 구간을 늘릴 때 필요한 끝 프레임은 구간 안에서만 복제합니다. 원본·이전 출력은 덮어쓰지 않습니다.
 
 기계 검사는 30fps·150프레임·해상도와 컨테이너 길이 오차 0.04초 이내를 확인합니다. **영상의 시각적 길이는 정확히 150/30=5초**이며 컨테이너 오차 허용은 오디오 패킷 등에 대한 검사 허용치입니다. `.probe.json`만으로 제품 보존·자막 위치·한글 표시·각 초의 동작까지 통과했다고 표시하지 않습니다. Codex가 실제 프레임을 확인한 증빙을 추가합니다.
 
@@ -126,7 +154,7 @@ python scripts/media.py jobs/sample/job.json --lead lead-1 --clips jobs/sample/f
 }
 ```
 
-필수 검사 이름은 이미지 `product_fidelity`, `prompt_match`; 영상 `product_fidelity`, `duration`, `frame_count`, `subtitle_timing`; 완성 결과 `template_mapping`, `product_fidelity`, `text_layout`, `brand`입니다. 모든 검사는 `pass`이고 증빙 문자열이 있어야 합니다. 이 형식 검사만으로 시각적 품질을 판정할 수 없으므로 실행 스킬의 실제 결과 확인이 필수입니다.
+필수 검사 이름은 이미지 `product_fidelity`, `prompt_match`; 영상 `product_fidelity`, `duration`, `frame_count`, `subtitle_timing`; v2 영상은 추가로 `full_bleed`, `font`, `overlay_product_clear`, `source_storyboard`; 전체 결과는 `template_mapping`, `product_fidelity`, `text_layout`, `brand`입니다. 모든 검사는 pass와 실제 증거가 필요합니다. v2 영상은 renderer sidecar 해시·Gmarket 글꼴·자막띠 0·원본 하나와 그 해시를 추가 대조합니다. 형식 검사는 미관이나 제품 동작 판정 대신이 아닙니다.
 
 ```powershell
 python scripts/studio.py record jobs/sample/plan/state.json hero assets/hero.png qa/hero.json
@@ -149,7 +177,7 @@ python scripts/studio.py validate examples/demo-job.json
 
 # 이동 가능한 리드 샘플 미리보기
 
-`scripts/sample_delivery.py`는 실제 MP4 2개·SRT 2개·해당 영상의 probe JSON·Figma 사본 정지 미리보기를 새 폴더에 복사한다. 자동 재생·무음·반복·직접 재생 컨트롤과 초별 자막 표를 포함한 `preview.html`을 만든다. 파일 경로는 전부 출력 폴더 내부 상대 경로라 폴더 전체를 옮겨도 사용할 수 있다. 기존 전체 납품용 `delivery.py`와 구분하며 `studio.py`의 QA 상태를 변경하지 않는다.
+`scripts/sample_delivery.py`는 실제 MP4 두 개·표시 SRT·v2 원문 SRT·probe JSON·Figma 사본 정지 미리보기를 새 폴더에 복사한다. 자동 재생·무음·반복·컨트롤·MP4/자막 다운로드 링크·초별 표시 카피 표를 포함한 `preview.html`을 만든다. 경로는 모두 폴더 내부 상대 경로이며 폴더째 이동할 수 있다. 전체 납품용 `delivery.py`와 구분하며 `studio.py`의 QA 상태를 변경하지 않는다.
 
 레이아웃 JSON의 경로는 `--workspace` 기준이다. `template_note`에는 실제 정지 미리보기 상태를 적는다. 예를 들어 영상 삽입 전 템플릿에는 그 사실을 명시한다.
 
@@ -171,7 +199,9 @@ python scripts/sample_delivery.py build jobs/<job_id>/sample-layout.json --job j
 python scripts/sample_delivery.py validate jobs/<job_id>/sample-preview/sample-manifest.json
 ```
 
-출력 `sample-manifest.json`은 항상 `scope:lead-sample`, `status:sample_packaged`, `page_complete:false`다. 파일 해시·기록된 probe의 150프레임/30fps/5초·SRT 원문과 구간을 검증한다. 영상의 실제 시각 검수나 After Effects 실행 증빙을 새로 만들어 주지는 않는다. 생성 후 브라우저에서 `preview.html`의 두 영상이 실제로 재생되는지 별도로 확인하고, Figma는 HTTPS 프로토타입에서도 따로 재생 검수한다. 스크립트의 `validate` 성공은 브라우저 재생 확인을 대신하지 않는다. 기존 출력 폴더를 덮어쓰지 않으며 수정본은 새 폴더로 만든다.
+출력 `sample-manifest.json`은 항상 `scope:lead-sample`, `status:sample_packaged`, `page_complete:false`다. 파일 해시·기록된 probe의 150프레임/30fps/5초·승인된 표시 카피와 원문 SRT를 검증한다. v2의 원문은 기본적으로 표시 파일 옆 `.source-captions.srt`에서 가져오며 layout의 `source_subtitle`로 다른 상대 경로를 지정할 수 있다. 실제 영상 시각 검수나 AE 실행 증빙을 만들어 주지는 않는다. 브라우저의 두 영상과 Figma HTTPS 프로토타입 재생은 각각 별도로 확인한다. validate 성공은 재생 확인을 대신하지 않는다. 기존 폴더를 덮어쓰지 않는다.
+
+video_mode 필드가 없는 이전 v1 job을 다시 패키징할 때는 build에 `--video-mode legacy-five-source-v1`을 명시한다. 원본 job·기존 패키지·QA를 수정할 필요가 없다. 기존 sample-manifest에 모드 필드가 없으면 검증기는 legacy로 읽는다. 새 기본값은 v2다.
 
 # 선택 원본 구간과 최종 1초의 구분
 

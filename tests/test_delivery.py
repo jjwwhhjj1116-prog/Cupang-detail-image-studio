@@ -204,5 +204,40 @@ class DeliveryTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "source captions"):
             delivery.validate_manifest(path, self.root, expected_job=self.expected_job)
 
+    def test_no_caption_delivery_requires_absence_evidence_but_no_display_subtitles(self):
+        self.expected_job["caption_mode"] = studio.WITHOUT_CAPTIONS
+        self.layout["subtitles"] = []
+        for lead, item in zip(self.expected_job["leads"], self.layout["items"][:2]):
+            original = (self.root / item["file"]).with_suffix(".source-captions.srt")
+            original.write_text(studio.srt(lead), encoding="utf8")
+            probe = delivery.read(self.root / item["probe_file"])
+            probe.update(caption_mode=studio.WITHOUT_CAPTIONS, subtitles_burned_in=False, renderer="ffmpeg_without_text", caption_band_px=0)
+            self.write(item["probe_file"], probe)
+        self.qa["checks"] = [x for x in self.qa["checks"] if x["name"] != "subtitle_timing"]
+        self.qa["checks"].append({"name": "caption_absence", "status": "pass", "evidence": "Synthetic no-text review fixture"})
+        self.write("qa/bundle.json", self.qa)
+        path = self.build()
+        manifest = delivery.validate_manifest(path, self.root, self.expected_job)
+        self.assertEqual(manifest["caption_mode"], studio.WITHOUT_CAPTIONS)
+        self.assertEqual(manifest["subtitles"], [])
+        self.assertEqual([x["lead_id"] for x in manifest["source_captions"]], ["lead-1", "lead-2"])
+        # A refreshed probe hash cannot turn captioned footage into a clean video.
+        probe_item = manifest["items"][0]["probe"]
+        probe = delivery.read(self.root / probe_item["file"])
+        probe["subtitles_burned_in"] = True
+        self.write(probe_item["file"], probe)
+        probe_item["sha256"] = delivery.sha(self.root / probe_item["file"])
+        self.rewrite_manifest(path, manifest)
+        with self.assertRaisesRegex(ValueError, "No-caption video"):
+            delivery.validate_manifest(path, self.root, self.expected_job)
+
+    def test_delivery_caption_mode_cannot_differ_from_source_job(self):
+        path = self.build()
+        manifest = delivery.read(path)
+        manifest["caption_mode"] = studio.WITHOUT_CAPTIONS
+        self.rewrite_manifest(path, manifest)
+        with self.assertRaisesRegex(ValueError, "caption mode differs"):
+            delivery.validate_manifest(path, self.root, self.expected_job)
+
 
 if __name__=="__main__":unittest.main()

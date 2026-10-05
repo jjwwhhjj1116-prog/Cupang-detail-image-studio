@@ -6,6 +6,21 @@ Python 3.11 이상과 표준 라이브러리만 사용합니다. `studio.py`는 
 
 ## 입력 데이터와 영상 모드
 
+영상 표시 선택은 job의 `caption_mode`에 `with-captions`(자막 있음) 또는 `without-captions`(자막 없음)으로 저장한다. 생략한 과거 job은 자막 있음으로 읽는다. 원고의 `seconds[].caption`은 두 모드 모두 원문 데이터로 유지한다. 자막 없음이라고 원고를 비우지 않는다.
+
+```powershell
+python scripts/studio.py plan jobs/sample/job.json --workspace jobs/sample --output jobs/sample/plan-with --scope lead-sample --caption-mode with-captions
+python scripts/studio.py plan jobs/sample/job.json --workspace jobs/sample --output jobs/sample/plan-without --scope lead-sample --caption-mode without-captions --reuse-source-plan jobs/sample/plan-with/state.json
+```
+
+선택한 값은 새 계획 폴더의 `job.json`과 state에 저장하며 원본 job과 이전 QA는 수정하지 않는다. `--reuse-source-plan`은 미완성 계획에서도 원본과 단일 생성 예약을 공유한다. 어느 버전에서 예약하든 형제 계획이 다시 요청할 수 없다. 통과한 원본만 재사용하며 자막 선택이 다른 최종 MP4와 QA는 새로 검수한다. 이 옵션 자체가 Flow 생성이나 추가 비용을 실행하지 않는다.
+
+자막 있음 샘플은 필수 산출물 6개, 자막 없음 샘플은 원본·최종 영상 4개다. 자막 없음은 표시 자막 산출물을 납품하지 않고 원문 SRT만 데이터로 보존한다. `media.py`, `after_effects.py`와 `remotion_render.py`에도 같은 `--caption-mode`를 전달하거나 선택이 저장된 job을 사용한다. MP4만 무자막인데 job을 자막 있음으로 두는 상태는 검증을 통과할 수 없다. 실제 렌더 증빙과 글자 없는 프레임 검수가 필요하다.
+
+착용 컷의 `model_binding`은 선택한 F01/M01 프로필 1~2개, 각 참조 파일·SHA-256·버전, `wearing_assignment`와 정체성 검수 요구를 담는다. `scripts/models.py bind`로 생성하며 [고정 얼굴 규칙](fixed-models.md)을 따른다. 모델 참조나 배정이 바뀌면 기존 원본/QA 재사용이 거부된다.
+
+실제 Remotion 경로는 [remotion-local.md](remotion-local.md)에 있다. FFmpeg로 검수한 무자막 입력에서 렌더하고 `.remotion.json`으로 출력·입력·폰트 해시를 기록한다. 출력은 원본 Flow 구간과 해시를 그대로 보존하며 Remotion 렌더 완료와 제품 시각 검수는 구분한다.
+
 `examples/demo-job.json`은 **가상의 형식 예제**입니다. 실제 제품 사진·원고·검증된 TYPE6 전체 템플릿을 제공하는 파일이 아닙니다. `input/demo-reference.png`를 동봉하지 않았으므로 형식 검사는 가능하지만 실제 제작 계획은 사진이 없으면 실패합니다.
 
 | 필드 | 규칙 |

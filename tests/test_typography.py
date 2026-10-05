@@ -157,6 +157,42 @@ class TypographyTests(unittest.TestCase):
             self.assertEqual(lead["design"]["font_postscript"], "GmarketSansTTFBold")
         self.assertNotIn("addSolid", output.read_text(encoding="utf8"))
 
+    def test_without_captions_has_no_events_font_or_caption_band(self):
+        lead = copy.deepcopy(self.job["leads"][0])
+        lead["caption_mode"] = "without-captions"
+        lead["seconds"][0]["motion"] = "zoom-in"
+        for style in ("plain", "kinetic", "fullbleed-motion"):
+            script = media.ass(lead, 768, 432, 76, style)
+            self.assertNotIn("Dialogue:", script)
+            self.assertNotIn("Fontname", script)
+        self.assertEqual(media.rendered_srt(lead), "")
+        design = fullbleed_design(lead, 768, 432)
+        self.assertIsNone(design["font_postscript"])
+        self.assertEqual(design["caption_band"], 0)
+        self.assertEqual(design["shots"][0]["motion"], "zoom-in")
+        self.assertTrue(all(s["text_layers"] == [] for s in design["shots"]))
+        # Explicit overrides take priority over inherited mode.
+        self.assertIn("Dialogue:", media.ass(lead, 768, 432, style="fullbleed-motion", caption_mode="with-captions"))
+
+    def test_without_captions_ae_uses_job_setting_and_does_not_read_font(self):
+        self.job["caption_mode"] = "without-captions"
+        studio.write_json(self.job_path, self.job)
+        with patch("after_effects.gmarket_font", side_effect=AssertionError("Font must not be read")):
+            output = after_effects.build(self.job_path, self.root, self.map_path, self.root / "clean.jsx",
+                width=768, height=432, caption_band=76, allow_missing=True, style="fullbleed-motion",
+                font_path=self.root / "nonexistent.ttf")
+        report = studio.read_json(output.with_suffix(".ae-plan.json"))
+        self.assertEqual(report["caption_mode"], "without-captions")
+        self.assertFalse(report["after_effects_executed"])
+        data = report["data"]
+        self.assertFalse(data["text_layers_enabled"])
+        self.assertNotIn("font_file", data)
+        self.assertEqual(data["caption_band"], 0)
+        for planned in data["leads"]:
+            self.assertIsNone(planned["design"]["font_postscript"])
+            self.assertTrue(all(s["text_layers"] == [] and s["display_caption"] == "" for s in planned["shots"]))
+        self.assertIn('if (data.caption_mode === "without-captions") { continue; }', output.read_text(encoding="utf-8"))
+
     def test_ae_retime_preserves_selected_source_window_and_offset(self):
         self.mapping["lead-2"][4].update(start_seconds=.25, source_duration=.5)
         studio.write_json(self.map_path, self.mapping)

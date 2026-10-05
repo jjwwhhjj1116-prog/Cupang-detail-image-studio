@@ -44,6 +44,14 @@ class StudioTests(unittest.TestCase):
             with self.subTest(key=key, value=value), self.assertRaises(ValueError):
                 studio.validate(job)
 
+    def test_caption_selection_defaults_to_historical_behavior_and_rejects_invalid_modes(self):
+        self.assertEqual(studio.caption_mode(self.job), studio.WITH_CAPTIONS)
+        self.assertEqual(studio.caption_mode(self.job, studio.WITHOUT_CAPTIONS), studio.WITHOUT_CAPTIONS)
+        for bad in ["off", "", None, True]:
+            job = dict(self.job, caption_mode=bad)
+            with self.subTest(mode=bad), self.assertRaises(ValueError):
+                studio.validate(job)
+
     def test_reject_missing_duplicate_reordered_seconds(self):
         for values in [[1, 2, 3, 4], [1, 2, 3, 4, 4], [2, 1, 3, 4, 5], [True, 2, 3, 4, 5]]:
             job = copy.deepcopy(self.job)
@@ -116,6 +124,9 @@ class StudioTests(unittest.TestCase):
         draft = studio.read_json(output)
         self.assertEqual(draft["source_prompt"], source)
         self.assertEqual([s["id"] for s in draft["sections"]], ["6-1", "6-2", "6-18"])
+        self.assertEqual(draft["caption_mode"], studio.WITH_CAPTIONS)
+        studio.ingest(path, output, "demo", "와이홉", 6, studio.WITHOUT_CAPTIONS)
+        self.assertEqual(studio.read_json(output)["caption_mode"], studio.WITHOUT_CAPTIONS)
         with self.assertRaises(ValueError): studio.validate(draft)
 
     def test_plan_is_resumable_and_rejects_changed_job(self):

@@ -3,10 +3,28 @@ import re
 import math
 import struct
 from pathlib import Path
-from studio import require
+from studio import require, caption_mode as resolve_caption_mode
 
 
-def kinetic_design(lead, width, height, band):
+def captionless_design(lead, width, height):
+    """Keep footage motion without requiring any caption layout or font."""
+    shots = []
+    for source in lead["seconds"]:
+        motion = source.get("motion", "none")
+        require(motion in {"none", "zoom-in", "zoom-out"}, "Local motion cannot invent camera orbit")
+        shots.append({"second": source["second"], "start": source["second"] - 1,
+                      "end": source["second"], "caption": source["caption"],
+                      "display_caption": "", "motion": motion, "zoom_amount": .025,
+                      "enabled": False, "text_layers": []})
+    return {"name": "fullbleed-without-captions", "caption_mode": "without-captions",
+            "sample_creative_not_brand_standard": True, "width": width, "height": height,
+            "caption_band": 0, "content_height": height, "font_family": None,
+            "font_postscript": None, "background_box": False, "shots": shots}
+
+
+def kinetic_design(lead, width, height, band, caption_mode=None):
+    if resolve_caption_mode(lead, caption_mode) == "without-captions":
+        return captionless_design(lead, width, height)
     require(type(band) is int and 64 <= band < height, "Kinetic style requires a caption band of at least 64 pixels")
     captions = [shot["caption"] for shot in lead["seconds"]]
     require(all("\n" not in caption and "\r" not in caption for caption in captions), "Kinetic captions must be single lines")
@@ -23,7 +41,7 @@ def kinetic_design(lead, width, height, band):
         require(keyword in caption, "Accent keyword must appear in the unchanged original caption")
         shots.append({"second": shot["second"], "caption": caption, "keyword": keyword,
                       "start": shot["second"] - 1, "end": shot["second"]})
-    return {"name": "kinetic-lime-sample-v1", "sample_creative_not_brand_standard": True,
+    return {"name": "kinetic-lime-sample-v1", "caption_mode": "with-captions", "sample_creative_not_brand_standard": True,
             "width": width, "height": height, "caption_band": band, "content_height": height - band,
             "font_family": "Malgun Gothic", "font_postscript": "MalgunGothicBold", "main_font_size": font_size,
             "accent_font_size": 16, "caption_center": [width / 2, height - 26],
@@ -54,8 +72,10 @@ def gmarket_font(path):
     return {"path": path, "family": "Gmarket Sans TTF", "postscript": "GmarketSansTTFBold"}
 
 
-def fullbleed_design(lead, width, height):
+def fullbleed_design(lead, width, height, caption_mode=None):
     """Overlay positions are creative choices, requiring review against the actual product."""
+    if resolve_caption_mode(lead, caption_mode) == "without-captions":
+        return captionless_design(lead, width, height)
     anchors = {"top-left": (0.08, 0.10, 7), "top-center": (0.50, 0.10, 8),
                "top-right": (0.92, 0.10, 9), "bottom-left": (0.08, 0.88, 1),
                "bottom-center": (0.50, 0.88, 2), "bottom-right": (0.92, 0.88, 3)}
@@ -90,7 +110,7 @@ def fullbleed_design(lead, width, height):
                       "anchor": anchor, "alignment": alignment, "position": [round(width * x), round(height * y)],
                       "font_size": size, "color": color, "motion": motion,
                       "slide_px": round(width * .015), "entry_seconds": .16, "zoom_amount": .025})
-    return {"name": "fullbleed-motion-v2", "sample_creative_not_brand_standard": True,
+    return {"name": "fullbleed-motion-v2", "caption_mode": "with-captions", "sample_creative_not_brand_standard": True,
             "width": width, "height": height, "caption_band": 0, "content_height": height,
             "font_family": "G마켓 산스 TTF Bold", "font_postscript": "GmarketSansTTFBold",
             "background_box": False, "product_overlap_review_required": True, "shots": shots}

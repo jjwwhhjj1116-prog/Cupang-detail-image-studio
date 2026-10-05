@@ -7,6 +7,12 @@ description: Turn a completed Hadi TYPE1–7 prompt and product photos into a fi
 
 사용자는 4단계까지 수동으로 완료한다. 받은 프롬프트·제품 사진·브랜드를 바탕으로 그 다음 제작 전체를 실행한다. 사용자가 원고 작성, 이미지 생성, 영상 편집, Figma 복사·붙여넣기를 할 필요가 없어야 한다. 단계별 승인을 반복하지 않는다.
 
+영상 타입을 `caption_mode: with-captions|without-captions`로 저장한다. 자막 있음은 영상 위 Gmarket Sans Bold 모션 타이포, 자막 없음은 글자·자막띠 없이 전체 화면 영상이다. 선택을 바꿀 때 Flow를 다시 생성하지 않고 `plan --reuse-source-plan <기존 state.json>`으로 원본과 요청 예약을 공유한다. 원문 카피는 두 모드 모두 보존한다.
+
+착용 컷은 `config/models.json`, `docs/fixed-models.md`를 읽고 승인된 고정 얼굴 이미지와 원본 제품 사진을 함께 참조한다. F01은 승인한 여자 얼굴, M01은 사용자가 마지막으로 지정한 단독 남자 사진의 얼굴이다. `models.py bind`로 활성 얼굴 버전·해시를 job에 결속한다. 얼굴·눈매·코·입·피부 톤은 유지하되 의상은 제품·계절·화보 콘셉트마다 현대적이고 스타일리시하게 바꾸고 연속 장면의 의상은 유지한다. 새 얼굴을 임의 생성하거나 승인된 F01을 보정하지 않는다.
+
+로컬 모션은 공식 Remotion 스킬을 읽고 `docs/remotion-local.md`에 따라 실행한다. FFmpeg로 검수한 무자막 5초 원본을 만든 뒤 `remotion_render.py`로 선택 모드를 렌더한다. Remotion 출력·글꼴·원본 해시·렌더 증빙을 검사하고 시각 검수를 별도로 수행한다. Studio 화면 연결 실패를 렌더 실패나 전체 페이지 완료로 바꾸어 기록하지 않는다.
+
 저장소 루트 기준 `config/workflow.json`, `config/brands.json`, `.local/connections.json`, `docs/production-workflow.md`를 읽는다. 원고 스키마와 도구 실행은 `docs/job-format.md`, Figma 연결은 `docs/template-map.md`를 참조한다. 공급자 사양 문제는 `docs/provider-capabilities.md`에 조사 근거가 있다. 이 스킬 자체가 백그라운드 서비스나 무제한 생성 기능은 아니다. Codex가 실행 중이며 관련 도구와 로그인 상태가 필요하다.
 
 리드 영상부터 샘플 검증하는 요청은 `docs/lead-sample-runbook.md`를 따라 `plan --scope lead-sample`로 실행한다. 새 계획 기본 모드는 `single-source-v2`이며 원본 MP4·표시 자막·최종 MP4를 리드마다 하나씩 추적한다. 원문 자막도 보존한다. 두 리드의 검증 결과는 `sample_verified`이고 전체 상세페이지 완료와 다르다. 통과한 결과와 소비한 생성 요청 슬롯을 전체 제작에서도 재사용한다. 이전 v1 계획·QA는 변환하거나 덮어쓰지 않는다.

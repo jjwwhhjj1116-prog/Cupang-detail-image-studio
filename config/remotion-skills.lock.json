@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "repository": "remotion-dev/skills",
+  "commit": "473352613039e718e46655a26df224851e84c4aa",
+  "skill_version": "4.0.533",
+  "skills": [
+    {
+      "name": "remotion-best-practices",
+      "path": "skills/remotion-best-practices",
+      "skill_sha256": "d8dd19efed1586cac681f71d96a474f665bf392eb2e49a29e2ae0fbaf981690f"
+    },
+    {
+      "name": "remotion-create",
+      "path": "skills/remotion-create",
+      "skill_sha256": "0fe988023d9c790ed5df2a8ae66f9117c45e9ad9173e8d68f0984670c4956e0e"
+    },
+    {
+      "name": "remotion-markup",
+      "path": "skills/remotion-markup",
+      "skill_sha256": "5ed2e97535e0e598bc6d52c9e0d3e85c53a3711f7ea67343ff1904745a673398"
+    },
+    {
+      "name": "remotion-studio",
+      "path": "skills/remotion-studio",
+      "skill_sha256": "880c1bbb683d280dac6a85bf6335446599ee27e165cd68372b7a1b1f16f0a188"
+    },
+    {
+      "name": "remotion-render",
+      "path": "skills/remotion-render",
+      "skill_sha256": "13804aaf44a27628f559a65a8a06f89d3e39408c1824275fb106762384a6cae7"
+    },
+    {
+      "name": "remotion-captions",
+      "path": "skills/remotion-captions",
+      "skill_sha256": "d748fe8136d4fc09b80f22fd0c23b56d12a45ea5e8ac8287ae52f3a769dc8411"
+    },
+    {
+      "name": "remotion-docs",
+      "path": "skills/remotion-docs",
+      "skill_sha256": "beccb506e14e8b043c417e2e7b1bd5f0d78d48fc7c89beccf559709a3c98cda6"
+    },
+    {
+      "name": "remotion-upgrade",
+      "path": "skills/remotion-upgrade",
+      "skill_sha256": "2d46b41d9182166b8e7b3fd2d1677eff643e49c45c641036a0a7a30506600d22"
+    },
+    {
+      "name": "remotion-interactivity",
+      "path": "skills/remotion-interactivity",
+      "skill_sha256": "a4e4a4ab3eecbf0bf813534203711d9776ad1907c66c28c9d5b15785e5be8d67"
+    },
+    {
+      "name": "remotion-multimedia",
+      "path": "skills/remotion-multimedia",
+      "skill_sha256": "d23d09f4ad9e813464811c4af21e5c087cf5c27ccbb763eb6631f81e93bc1a8f"
+    },
+    {
+      "name": "remotion-maps",
+      "path": "skills/remotion-maps",
+      "skill_sha256": "f4c63fe117136a34ce887b8d4cb482e14dcd0cda44c5a51dbdca3ac78c8f8a32"
+    },
+    {
+      "name": "remotion-saas",
+      "path": "skills/remotion-saas",
+      "skill_sha256": "bf40875c14917e336f26eaf7f6009a7b7c9c3e1cff3375062a61c99e8807dd13"
+    }
+  ]
+}

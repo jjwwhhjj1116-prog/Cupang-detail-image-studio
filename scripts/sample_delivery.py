@@ -8,7 +8,8 @@ from urllib.parse import urlparse
 
 from delivery import check, check_entry, file_at, read, sha
 from media import check_video
-from studio import srt, validate, video_mode, SINGLE_VIDEO, LEGACY_VIDEO, VIDEO_MODES
+from studio import (srt, validate, video_mode, SINGLE_VIDEO, LEGACY_VIDEO, VIDEO_MODES,
+                    caption_mode, CAPTION_MODES, WITH_CAPTIONS, WITHOUT_CAPTIONS, verify_caption_render)
 
 
 def checked_video(entry, root):
@@ -17,15 +18,20 @@ def checked_video(entry, root):
         check(video.suffix.lower() == ".mp4" and stream.read(8)[4:8] == b"ftyp", "Lead must be MP4")
     evidence = read(check_entry(entry["probe"], root))
     check(evidence.get("artifact_sha256") == sha(video), "Probe refers to different footage")
+    captions = caption_mode(entry)
+    verify_caption_render(evidence, captions)
     streams = evidence["metadata"].get("streams", [])
     check(len(streams) == 1, "One video stream is required")
     width, height = streams[0]["width"], streams[0]["height"]
     check(type(width) is int and type(height) is int and width > 0 and height > 0, "Invalid dimensions")
     check_video(evidence["metadata"], 150, width, height)
-    subtitle = check_entry(entry["subtitle"], root).read_text(encoding="utf-8-sig")
     single = entry.get("video_mode", LEGACY_VIDEO) == SINGLE_VIDEO
-    check(subtitle.replace("\r\n", "\n") == srt({"seconds": entry["seconds"]}, display=single), "Subtitles must exactly match approved job display captions")
-    if single:
+    if captions == WITH_CAPTIONS:
+        subtitle = check_entry(entry["subtitle"], root).read_text(encoding="utf-8-sig")
+        check(subtitle.replace("\r\n", "\n") == srt({"seconds": entry["seconds"]}, display=single), "Subtitles must exactly match approved job display captions")
+    else:
+        check("subtitle" not in entry, "No-caption sample must not list display subtitles")
+    if single or captions == WITHOUT_CAPTIONS:
         original = check_entry(entry["source_subtitle"], root).read_text(encoding="utf-8-sig")
         check(original.replace("\r\n", "\n") == srt({"seconds": entry["seconds"]}), "Original source captions must remain unchanged")
     return evidence
@@ -35,11 +41,13 @@ def validate_package(path):
     """Check copied files and exact timelines, not product/visual QA or AE execution."""
     manifest, root = read(path), Path(path).resolve().parent
     check(manifest.get("video_mode", LEGACY_VIDEO) in VIDEO_MODES, "Unsupported sample video mode")
+    captions = caption_mode(manifest)
     check(manifest.get("schema_version") == 1 and manifest.get("scope") == "lead-sample", "Invalid sample manifest")
     check(manifest.get("page_complete") is False and manifest.get("status") == "sample_packaged", "Sample cannot complete the detail page")
     check([lead.get("id") for lead in manifest["leads"]] == ["lead-1", "lead-2"], "Both leads must be ordered")
     for lead in manifest["leads"]:
         check(lead.get("video_mode", LEGACY_VIDEO) == manifest.get("video_mode", LEGACY_VIDEO), "Sample lead mode differs from its manifest")
+        check(caption_mode(lead) == captions, "Sample lead caption mode differs from its manifest")
         check([shot.get("second") for shot in lead["seconds"]] == [1, 2, 3, 4, 5], "Invalid five-second timeline")
         check(all(isinstance(s.get("caption"), str) and s["caption"].strip() for s in lead["seconds"]), "Empty caption")
         checked_video(lead, root)
@@ -57,14 +65,18 @@ def render_page(manifest):
     for number, lead in enumerate(manifest["leads"], 1):
         from typography import display_caption
         single = lead.get("video_mode", LEGACY_VIDEO) == SINGLE_VIDEO
-        timeline = "".join(f'<li><span>{shot["second"] - 1}–{shot["second"]}초</span><p>{esc((display_caption(shot) or "타이포 없는 장면") if single else shot["caption"])}</p></li>' for shot in lead["seconds"])
-        original_link = f'<a download href="{lead["source_subtitle"]["file"]}">원문 SRT ↗</a>' if single else ""
+        without = caption_mode(lead) == WITHOUT_CAPTIONS
+        timeline = "".join(f'<li><span>{shot["second"] - 1}–{shot["second"]}초</span><p>{esc(shot.get("action", "영상 장면") if without else ((display_caption(shot) or "타이포 없는 장면") if single else shot["caption"]))}</p></li>' for shot in lead["seconds"])
+        original_link = f'<a download href="{lead["source_subtitle"]["file"]}">원문 원고 SRT ↗</a>' if "source_subtitle" in lead else ""
+        display_link = "" if without else f'<a download href="{lead["subtitle"]["file"]}">표시 SRT ↗</a>'
+        selected_label = "자막 없음" if without else "자막 있음"
+        timeline_label = "초별 영상 구성 보기" if without else "초별 자막 보기"
         cards.append(f'''<section class="lead" id="{lead['id']}">
 <div class="section-label"><span>LEAD 0{number}</span><span>{esc(lead['section_id'])} · 5초</span></div>
 <h2>{esc(lead['headline'])}</h2>
 <div class="screen"><video autoplay muted loop playsinline controls preload="metadata" aria-label="리드 {number}: {esc(lead['headline'], quote=True)}" src="{lead['video']['file']}"></video></div>
-<div class="asset-links"><span>5장면 × 1초 · 30fps</span><a download href="{lead['video']['file']}">MP4 저장 ↗</a><a download href="{lead['subtitle']['file']}">표시 SRT ↗</a>{original_link}</div>
-<details class="timing"><summary>초별 자막 보기 <span>00:00 — 00:05</span></summary><ol>{timeline}</ol></details>
+<div class="asset-links"><span>5장면 × 1초 · 30fps · {selected_label}</span><a download href="{lead['video']['file']}">MP4 저장 ↗</a>{display_link}{original_link}</div>
+<details class="timing"><summary>{timeline_label} <span>00:00 — 00:05</span></summary><ol>{timeline}</ol></details>
 </section>''')
     figma = (f'<a class="figma-link" href="{esc(manifest["figma_url"], quote=True)}" target="_blank" rel="noopener noreferrer">Figma 작업 사본 열기 ↗</a>' if manifest.get("figma_url") else "")
     page = Path(__file__).with_name("templates").joinpath("sample_preview.html").read_text(encoding="utf-8")
@@ -78,7 +90,7 @@ def render_page(manifest):
     return page
 
 
-def build(job_path, layout_path, workspace, output, mode=None):
+def build(job_path, layout_path, workspace, output, mode=None, requested_caption_mode=None):
     root, dest = Path(workspace).resolve(), Path(output).resolve()
     check(dest.is_relative_to(root) and dest != root, "Sample output must be inside the job workspace")
     check(not dest.exists(), "Choose a new output folder to preserve previous samples")
@@ -98,6 +110,9 @@ def build(job_path, layout_path, workspace, output, mode=None):
     manifest = {key: job[key] for key in ("job_id", "brand", "type")}
     mode = video_mode(job, mode)
     manifest["video_mode"] = mode
+    captions = caption_mode(job, requested_caption_mode)
+    check(captions == caption_mode(job), "Choose a job plan with the requested caption mode before packaging")
+    manifest["caption_mode"] = captions
     manifest.update(schema_version=1, scope="lead-sample", status="sample_packaged", page_complete=False,
                     figma_url=figma_url, template_note=note, leads=[],
                     verification_scope="File hashes, recorded video probe and exact SRT only; job QA state is unchanged.")
@@ -109,16 +124,21 @@ def build(job_path, layout_path, workspace, output, mode=None):
     for layout_lead, lead in zip(layout["leads"], job["leads"]):
         sections = [s for s in job["sections"] if s.get("asset_id") == lead["id"] and s["kind"] == "video"]
         check(len(sections) == 1, "Each lead needs one video section with its exact headline")
-        item = {"id": lead["id"], "section_id": sections[0]["id"], "headline": sections[0]["text"], "video_mode": mode,
-                "seconds": [{k: s[k] for k in ("second", "caption", "overlay") if k in s} for s in lead["seconds"]]}
+        item = {"id": lead["id"], "section_id": sections[0]["id"], "headline": sections[0]["text"], "video_mode": mode, "caption_mode": captions,
+                "seconds": [{k: s[k] for k in ("second", "caption", "overlay", "action") if k in s} for s in lead["seconds"]]}
         original = {**item}
-        for kind, ext in (("video", "mp4"), ("subtitle", "srt"), ("probe", "probe.json")):
+        kinds = [("video", "mp4"), ("probe", "probe.json")]
+        if captions == WITH_CAPTIONS:
+            kinds.append(("subtitle", "srt"))
+        else:
+            check("subtitle" not in layout_lead, "No-caption layout must not list display subtitles")
+        for kind, ext in kinds:
             relative = layout_lead[kind]
             source = file_at(root, relative)
             original[kind] = {"file": relative, "sha256": sha(source)}
             item[kind] = prepare(relative, f'assets/{lead["id"]}.{ext}')
-        if mode == SINGLE_VIDEO:
-            relative = layout_lead.get("source_subtitle", str(Path(layout_lead["subtitle"]).with_suffix(".source-captions.srt")).replace("\\", "/"))
+        if mode == SINGLE_VIDEO or captions == WITHOUT_CAPTIONS:
+            relative = layout_lead.get("source_subtitle", str(Path(layout_lead.get("subtitle", layout_lead["video"])).with_suffix(".source-captions.srt")).replace("\\", "/"))
             original["source_subtitle"] = {"file": relative, "sha256": sha(file_at(root, relative))}
             item["source_subtitle"] = prepare(relative, f'assets/{lead["id"]}.source-captions.srt')
         evidence = checked_video(original, root)
@@ -146,11 +166,12 @@ if __name__ == "__main__":
     parser.add_argument("input", help="Layout JSON for build; sample-manifest.json for validate")
     parser.add_argument("--job"); parser.add_argument("--workspace"); parser.add_argument("--output")
     parser.add_argument("--video-mode", choices=sorted(VIDEO_MODES), help="Explicit mode for rebuilding historical jobs without a video_mode field")
+    parser.add_argument("--caption-mode", choices=sorted(CAPTION_MODES), help="Must match the selected source job plan")
     args = parser.parse_args()
     try:
         if args.mode == "build":
             check(all((args.job, args.workspace, args.output)), "Build requires --job, --workspace and --output")
-            print(build(args.job, args.input, args.workspace, args.output, args.video_mode))
+            print(build(args.job, args.input, args.workspace, args.output, args.video_mode, args.caption_mode))
         else:
             validate_package(args.input)
             print("Portable sample files and timelines verified; detail page status unchanged")

@@ -53,7 +53,9 @@
             comp.workAreaDuration = 5;
             comp.bgColor = [0, 0, 0];
             comp.comment = "Sample creative: black/white/lime, not a confirmed brand-color standard. Five exact 1-second cuts; no added BGM.";
-            var background = comp.layers.addSolid([0, 0, 0], "Black background and caption band", data.width, data.height, 1, 5);
+            if (data.caption_mode !== "without-captions") {
+                comp.layers.addSolid([0, 0, 0], "Black background and caption band", data.width, data.height, 1, 5);
+            }
             for (j = 0; j < lead.shots.length; j++) {
                 shot = lead.shots[j];
                 file = new File(data.workspace + "/" + shot.file);
@@ -69,10 +71,13 @@
                 layer.startTime = shot.start - shot.source_start / shot.source_duration;
                 layer.frameBlendingType = FrameBlendingType.NO_FRAME_BLEND;
                 span(layer, shot.start, shot.end);
-                var scale = Math.min(data.width / footage.width, design.content_height / footage.height) * 100;
+                var scale = (data.caption_mode === "without-captions" ?
+                             Math.max(data.width / footage.width, data.height / footage.height) :
+                             Math.min(data.width / footage.width, design.content_height / footage.height)) * 100;
                 transform(layer, "ADBE Scale").setValue([scale, scale]);
                 transform(layer, "ADBE Position").setValue([data.width / 2, design.content_height / 2]);
                 if (layer.hasAudio) { layer.audioEnabled = data.audio_mode === "preserve"; }
+                if (data.caption_mode === "without-captions") { continue; }
                 textLayer(comp, shot.caption, "CAPTION " + shot.second + " - exact full text",
                           design.main_font_size, [1, 1, 1], design.caption_center, shot.start, shot.end, design.font_postscript);
                 keyword = textLayer(comp, shot.keyword, "ACCENT " + shot.second, design.accent_font_size,

@@ -46,8 +46,9 @@ def check_entry(entry, workspace):
 
 def validate_manifest(path, workspace, expected_job=None):
     manifest = read(path)
-    from studio import LEGACY_VIDEO, SINGLE_VIDEO, VIDEO_MODES, srt
+    from studio import LEGACY_VIDEO, SINGLE_VIDEO, VIDEO_MODES, WITHOUT_CAPTIONS, caption_mode, srt, verify_caption_render
     mode = manifest.get("video_mode", LEGACY_VIDEO)
+    captions = caption_mode(manifest)
     check(mode in VIDEO_MODES, "Unsupported delivery video mode")
     check(manifest.get("schema_version") == 1, "Unsupported delivery schema")
     check(bool(re.fullmatch(r"[a-z0-9][a-z0-9_-]{0,79}", manifest.get("job_id", ""))), "Invalid job ID")
@@ -66,6 +67,7 @@ def validate_manifest(path, workspace, expected_job=None):
     videos = [x for x in items if x.get("kind") == "video"]
     check([x["id"] for x in videos] == ["lead-1", "lead-2"], "Both lead videos must be present in order")
     if expected_job is not None:
+        check(captions == caption_mode(expected_job), "Delivery caption mode differs from the selected job")
         check("video_mode" not in expected_job or expected_job["video_mode"] == mode, "Delivery video mode differs from the plan")
         check(all(manifest.get(k) == expected_job.get(k) for k in ("job_id", "brand", "type")), "Delivery belongs to a different job")
         expected_sections = {x["id"] for x in expected_job["sections"]}
@@ -97,12 +99,23 @@ def validate_manifest(path, workspace, expected_job=None):
             probe_path = check_entry(item["probe"], workspace)
             probe = read(probe_path)
             check(probe.get("artifact_sha256") == item["sha256"], "Video probe refers to different footage")
+            verify_caption_render(probe, captions)
             from media import check_video
             check_video(probe["metadata"], 150, item["width"], item["height"])
         else:
             raise ValueError("Unknown delivery item kind")
     subs = manifest.get("subtitles", [])
-    check([x.get("lead_id") for x in subs] == ["lead-1", "lead-2"], "Both timed subtitle files are required")
+    if captions == WITHOUT_CAPTIONS:
+        check(subs == [], "No-caption delivery must not list display subtitles")
+        originals = manifest.get("source_captions", [])
+        check([x.get("lead_id") for x in originals] == ["lead-1", "lead-2"], "Both original caption-data files are required")
+        check(expected_job is not None, "Original caption-data verification requires the source job")
+        for entry in originals:
+            lead = next(lead for lead in expected_job["leads"] if lead["id"] == entry["lead_id"])
+            original = check_entry(entry, workspace).read_text(encoding="utf-8-sig")
+            check(original.replace("\r\n", "\n") == srt(lead), "Original source captions changed")
+    else:
+        check([x.get("lead_id") for x in subs] == ["lead-1", "lead-2"], "Both timed subtitle files are required")
     expected = [(f"00:00:0{i},000", f"00:00:0{i+1},000") for i in range(5)]
     for entry in subs:
         subpath = check_entry(entry, workspace)
@@ -123,7 +136,8 @@ def validate_manifest(path, workspace, expected_job=None):
     qa = read(check_entry(manifest["qa"], workspace))
     checks = qa.get("checks", [])
     check(isinstance(checks, list) and all(isinstance(x, dict) and x.get("status") == "pass" and isinstance(x.get("evidence"), str) and x["evidence"].strip() for x in checks), "Unresolved QA checks")
-    check(REQUIRED_QA <= {x.get("name") for x in checks}, "Required production QA evidence is missing")
+    required_qa = (REQUIRED_QA - {"subtitle_timing"}) | {"caption_absence"} if captions == WITHOUT_CAPTIONS else REQUIRED_QA
+    check(required_qa <= {x.get("name") for x in checks}, "Required production QA evidence is missing")
     preview = check_entry(manifest["preview"], workspace)
     check(preview.suffix.lower() == ".html", "Missing playable HTML preview")
     return manifest
@@ -138,8 +152,9 @@ def build(layout_path, workspace, output, expected_job=None):
     manifest_path = dest / "delivery-manifest.json"
     check(not preview.exists() and not manifest_path.exists(), "Choose a new delivery folder to preserve existing outputs")
     manifest = {k: layout[k] for k in ("job_id", "brand", "type", "figma_url", "width")}
-    from studio import video_mode
+    from studio import video_mode, caption_mode, WITHOUT_CAPTIONS
     manifest["video_mode"] = video_mode(expected_job or {}, layout.get("video_mode"))
+    manifest["caption_mode"] = caption_mode(expected_job or {}, layout.get("caption_mode"))
     manifest.update(schema_version=1, items=[], subtitles=[])
     manifest["composition_assets"] = layout.get("composition_assets", [])
     def entry(relative):
@@ -158,7 +173,12 @@ def build(layout_path, workspace, output, expected_job=None):
             blocks.append(f'<video controls playsinline preload="metadata" aria-label="{title}" src="{src}"></video>')
         else:
             blocks.append(f'<img src="{src}" alt="{title}" loading="lazy">')
-    for sub in layout["subtitles"]:
+    if manifest["caption_mode"] == WITHOUT_CAPTIONS:
+        check(not layout.get("subtitles"), "No-caption layout must not list display subtitles")
+        originals = layout.get("source_captions", [{"lead_id": item["id"], "file": str(Path(item["file"]).with_suffix(".source-captions.srt")).replace("\\", "/")}
+                                                  for item in layout["items"] if item["kind"] == "video"])
+        manifest["source_captions"] = [{"lead_id": sub["lead_id"], **entry(sub["file"])} for sub in originals]
+    for sub in layout.get("subtitles", []):
         result = {"lead_id": sub["lead_id"], **entry(sub["file"])}
         from studio import SINGLE_VIDEO
         if manifest["video_mode"] == SINGLE_VIDEO:

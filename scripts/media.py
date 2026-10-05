@@ -10,7 +10,7 @@ import tempfile
 from fractions import Fraction
 from pathlib import Path
 
-from studio import digest, read_json, require, srt, validate, write_json
+from studio import CAPTION_MODES, caption_mode as resolve_caption_mode, digest, read_json, require, srt, validate, write_json
 
 
 def run(argv, cwd=None):
@@ -38,13 +38,17 @@ def ass_escape(text):
     return text.replace("\\", "\\\\").replace("{", "\\{").replace("}", "\\}").replace("\r", "").replace("\n", "\\N")
 
 
-def ass(lead, width, height, caption_band=0, style="plain"):
+def ass(lead, width, height, caption_band=0, style="plain", caption_mode=None):
     require(style in {"plain", "kinetic", "fullbleed-motion"}, "Unknown typography style")
+    if resolve_caption_mode(lead, caption_mode) == "without-captions":
+        # A usable sidecar with no events; the renderer does not invoke libass.
+        return (f"[Script Info]\nScriptType: v4.00+\nPlayResX: {width}\nPlayResY: {height}\n\n"
+                "[Events]\nFormat: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\n")
     if style == "fullbleed-motion":
         require(caption_band == 0, "Fullbleed motion forbids a caption band")
-        return fullbleed_ass(lead, width, height)
+        return fullbleed_ass(lead, width, height, caption_mode)
     if style == "kinetic":
-        return kinetic_ass(lead, width, height, caption_band)
+        return kinetic_ass(lead, width, height, caption_band, caption_mode)
     require(type(caption_band) is int and 0 <= caption_band < height, "Caption band must be nonnegative and smaller than video height")
     font_size = max(18, round(width / 22))
     alignment, margin_v, position = 2, round(height * .07), ""
@@ -74,10 +78,10 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
         for s in lead["seconds"]) + "\n"
 
 
-def kinetic_ass(lead, width, height, caption_band):
+def kinetic_ass(lead, width, height, caption_band, caption_mode=None):
     from typography import kinetic_design
-    design = kinetic_design(lead, width, height, caption_band)
-    base = ass(lead, width, height, caption_band)
+    design = kinetic_design(lead, width, height, caption_band, caption_mode)
+    base = ass(lead, width, height, caption_band, caption_mode=caption_mode)
     header = base[:base.index("Dialogue:")]
     lines = []
     def event(shot, layer, tags, text):
@@ -99,10 +103,10 @@ def kinetic_ass(lead, width, height, caption_band):
     return header + "\n".join(lines) + "\n"
 
 
-def fullbleed_ass(lead, width, height):
+def fullbleed_ass(lead, width, height, caption_mode=None):
     from typography import fullbleed_design
-    design = fullbleed_design(lead, width, height)
-    header = ass(lead, width, height).split("Dialogue:", 1)[0]
+    design = fullbleed_design(lead, width, height, caption_mode)
+    header = ass(lead, width, height, caption_mode=caption_mode).split("Dialogue:", 1)[0]
     header = header.replace("Malgun Gothic", design["font_family"])
     events = []
     for shot in design["shots"]:
@@ -133,14 +137,21 @@ def ass_timestamp(seconds):
     return f"{centiseconds // 360000}:{centiseconds // 6000 % 60:02}:{centiseconds // 100 % 60:02}.{centiseconds % 100:02}"
 
 
-def rendered_srt(lead, design=None):
+def rendered_srt(lead, design=None, caption_mode=None):
     """Plain copy per scene; ASS retains exact independent layer animation timing."""
+    mode = caption_mode or (design or {}).get("caption_mode")
+    if resolve_caption_mode(lead, mode) == "without-captions":
+        return ""
     if not design or not any(s.get("overlay_mode") == "editorial" for s in design["shots"]):
         return srt(lead)
     return srt(lead, display=True)
 
 
-def assemble(lead, clips, output, width, height, ffmpeg="ffmpeg", ffprobe="ffprobe", audio=None, starts=None, caption_band=0, style="plain", source_durations=None, font_path=None):
+def assemble(lead, clips, output, width, height, ffmpeg="ffmpeg", ffprobe="ffprobe", audio=None, starts=None, caption_band=0, style="plain", source_durations=None, font_path=None, caption_mode=None):
+    caption_mode = resolve_caption_mode(lead, caption_mode)
+    captions_enabled = caption_mode == "with-captions"
+    if not captions_enabled:
+        caption_band = 0
     require(len(clips) == 5, "Exactly five source clips are required, ordered by second")
     starts = starts if starts is not None else [0.0] * 5
     require(len(starts) == 5 and all(isinstance(n, (int, float)) and math.isfinite(n) and n >= 0 for n in starts),
@@ -150,12 +161,15 @@ def assemble(lead, clips, output, width, height, ffmpeg="ffmpeg", ffprobe="ffpro
             "Source durations must contain five finite values from 1/99 to 100 seconds")
     require(type(width) is int and type(height) is int and width > 0 and height > 0 and width % 2 == height % 2 == 0,
             "Video dimensions must be positive even integers")
-    caption_script = ass(lead, width, height, caption_band, style)
+    caption_script = ass(lead, width, height, caption_band, style, caption_mode)
     font, design = None, None
-    if style == "fullbleed-motion":
+    if not captions_enabled:
+        from typography import captionless_design
+        design = captionless_design(lead, width, height)
+    elif style == "fullbleed-motion":
         from typography import fullbleed_design, gmarket_font
         require(font_path is not None, "Provide the official GmarketSansTTFBold.ttf with --font")
-        font, design = gmarket_font(font_path), fullbleed_design(lead, width, height)
+        font, design = gmarket_font(font_path), fullbleed_design(lead, width, height, caption_mode)
     clips = [Path(path).resolve() for path in clips]
     output = Path(output).resolve()
     require(output.suffix.lower() == ".mp4", "Output must be an MP4 file")
@@ -178,7 +192,7 @@ def assemble(lead, clips, output, width, height, ffmpeg="ffmpeg", ffprobe="ffpro
             content_height = height - caption_band
             filters = (f"fps=30,scale={width}:{content_height}:force_original_aspect_ratio=decrease:force_divisible_by=2,"
                        f"pad={width}:{height}:(ow-iw)/2:({content_height}-ih)/2:color=black,setsar=1")
-        if style == "fullbleed-motion":
+        if style == "fullbleed-motion" or not captions_enabled:
             filters = f"fps=30,scale={width}:{height}:force_original_aspect_ratio=increase,crop={width}:{height},setsar=1"
         for index, clip in enumerate(clips):
             segment = temp / f"segment-{index}.mp4"
@@ -203,8 +217,10 @@ def assemble(lead, clips, output, width, height, ffmpeg="ffmpeg", ffprobe="ffpro
             argv += ["-i", audio, "-map", "0:v:0", "-map", "1:a:0", "-af", "apad,atrim=duration=5", "-c:a", "aac"]
         else:
             argv += ["-map", "0:v:0", "-an"]
-        subtitle_filter = "subtitles=captions.ass:fontsdir=fonts" if font else "subtitles=captions.ass"
-        argv += ["-vf", subtitle_filter, "-frames:v", "150", "-t", "5", "-c:v", "libx264",
+        if captions_enabled:
+            subtitle_filter = "subtitles=captions.ass:fontsdir=fonts" if font else "subtitles=captions.ass"
+            argv += ["-vf", subtitle_filter]
+        argv += ["-frames:v", "150", "-t", "5", "-c:v", "libx264",
                  "-pix_fmt", "yuv420p", "-movflags", "+faststart", "-y", "render.mp4"]
         if font:
             argv[2] = "info"
@@ -221,9 +237,9 @@ def assemble(lead, clips, output, width, height, ffmpeg="ffmpeg", ffprobe="ffpro
         check_video(metadata, 150, width, height)
         shutil.copyfile(temp / "render.mp4", output)
         shutil.copyfile(temp / "captions.ass", output.with_suffix(".ass"))
-    output.with_suffix(".srt").write_text(rendered_srt(lead, design), encoding="utf-8")
-    if style == "fullbleed-motion":
-        output.with_suffix(".source-captions.srt").write_text(srt(lead), encoding="utf-8")
+    output.with_suffix(".srt").write_text(rendered_srt(lead, design, caption_mode), encoding="utf-8")
+    # Preserve original copy in both deliverable modes, including legacy renders.
+    output.with_suffix(".source-captions.srt").write_text(srt(lead), encoding="utf-8")
     if design and any(s.get("overlay_mode") == "editorial" for s in design["shots"]):
         write_json(output.with_suffix(".copy-changes.json"), {
             "source_caption_preserved": True, "source_captions_file": output.with_suffix(".source-captions.srt").name,
@@ -237,6 +253,7 @@ def assemble(lead, clips, output, width, height, ffmpeg="ffmpeg", ffprobe="ffpro
                    "font_sha256": digest(font["path"]), "fontselect": selected, "global_install_required_for_ffmpeg": False})
     write_json(output.with_suffix(".sources.json"), {
         "lead_id": lead["id"], "artifact_sha256": digest(output), "caption_band_px": caption_band, "style": style,
+        "caption_mode": caption_mode,
         "unique_source_files": len(set(clips)), "sources": [
             {"second": index + 1, "file": str(clip), "sha256": digest(clip), "start_seconds": starts[index],
              "selected_duration_seconds": source_durations[index], "output_duration_seconds": 1,
@@ -247,10 +264,13 @@ def assemble(lead, clips, output, width, height, ffmpeg="ffmpeg", ffprobe="ffpro
     write_json(output.with_suffix(".probe.json"), {
         "artifact_sha256": digest(output), "metadata": metadata,
         "mechanical_checks": {"duration": "pass", "frame_count": "pass", "fps": "pass", "dimensions": "pass"},
-        "visual_review_required": ["product_fidelity", "subtitle_timing", "Korean font rendering", "scene action"],
+        "visual_review_required": ["product_fidelity", "scene action"] +
+            (["subtitle_timing", "Korean font rendering"] if captions_enabled else ["no_text_overlay"]),
         "caption_band_px": caption_band, "content_region": {"x": 0, "y": 0, "width": width, "height": height - caption_band},
-        "style": style, "renderer": "ffmpeg_libass", "after_effects_render": False,
-        "full_bleed": style == "fullbleed-motion", "font_postscript": font["postscript"] if font else "MalgunGothicBold",
+        "style": style, "renderer": "ffmpeg_libass" if captions_enabled else "ffmpeg_without_text", "after_effects_render": False,
+        "caption_mode": caption_mode, "subtitles_burned_in": captions_enabled,
+        "full_bleed": style == "fullbleed-motion" or not captions_enabled,
+        "font_postscript": (font["postscript"] if font else "MalgunGothicBold") if captions_enabled else None,
         "overlay_design": design,
         "audio_mode": "provided_track" if audio else "mute"})
     return output
@@ -294,6 +314,7 @@ def main():
     parser.add_argument("--caption-band", type=int, default=0, help="Black lower caption band in pixels; default 0 preserves overlay layout")
     parser.add_argument("--style", choices=["plain", "kinetic", "fullbleed-motion"], default="plain")
     parser.add_argument("--font", help="Exact GmarketSansTTFBold.ttf required by fullbleed-motion")
+    parser.add_argument("--caption-mode", choices=sorted(CAPTION_MODES), help="Override job setting: with-captions or without-captions")
     parser.add_argument("--ffmpeg", default="ffmpeg"); parser.add_argument("--ffprobe", default="ffprobe")
     sound = parser.add_mutually_exclusive_group(required=True)
     sound.add_argument("--mute", action="store_true"); sound.add_argument("--audio")
@@ -301,16 +322,17 @@ def main():
     try:
         job = validate(read_json(args.job))
         lead = next(item for item in job["leads"] if item["id"] == args.lead)
+        selected_caption_mode = resolve_caption_mode(job, args.caption_mode)
         if args.source:
             require(args.edit_map is not None and args.starts is None and args.source_durations is None,
                     "Single-source editing requires --edit-map and uses its exact segment timings")
             print(assemble_single(lead, args.source, read_json(args.edit_map)["segments"], args.output, args.width, args.height,
                   ffmpeg=args.ffmpeg, ffprobe=args.ffprobe, audio=args.audio, caption_band=args.caption_band,
-                  style=args.style, font_path=args.font))
+                  style=args.style, font_path=args.font, caption_mode=selected_caption_mode))
         else:
             require(args.edit_map is None, "--edit-map belongs to --source")
             print(assemble(lead, args.clips, args.output, args.width, args.height, args.ffmpeg, args.ffprobe, args.audio,
-                  args.starts, args.caption_band, args.style, args.source_durations, args.font))
+                  args.starts, args.caption_band, args.style, args.source_durations, args.font, selected_caption_mode))
     except (ValueError, OSError, KeyError, TypeError, subprocess.CalledProcessError) as error:
         parser.exit(2, f"Error: {error}\n")
 

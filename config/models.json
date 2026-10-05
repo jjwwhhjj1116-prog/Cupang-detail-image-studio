@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "policy": "fixed-pair",
+  "brands": [
+    "와이홉",
+    "유앤채"
+  ],
+  "identity_review_required": true,
+  "reference_strategy": "Always attach the selected canonical portrait AND original product photos; never use a text-only face description.",
+  "default_wearing_assignment": {
+    "lead-1": "female-f01",
+    "lead-2": "male-m01"
+  },
+  "models": [
+    {
+      "id": "female-f01",
+      "gender": "female",
+      "revision": 1,
+      "fictional_adult": true,
+      "concept_age": 24,
+      "selection_status": "locked_by_user",
+      "reference_file": ".local/models/female-f01/master.png",
+      "sha256": "07c9947e3e115cb3cef3039ad43e00a1c7ddc035bc8535937b8db24d9a159a79",
+      "appearance": "밝고 투명한 피부, 몽환적인 눈매, 자연스러운 로지 립, 긴 다크브라운 머리. 차분한 한국 패션 인플루언서 분위기.",
+      "preserve": [
+        "face shape",
+        "eyes and eyebrows",
+        "nose",
+        "lips",
+        "skin tone",
+        "hair color"
+      ],
+      "variable": [
+        "product",
+        "clothing appropriate to campaign",
+        "pose",
+        "lighting",
+        "background"
+      ]
+    },
+    {
+      "id": "male-m01",
+      "gender": "male",
+      "revision": 6,
+      "concept_age": 27,
+      "selection_status": "locked_by_user",
+      "reference_file": ".local/models/male-m01/master-v6-user-reference.png",
+      "sha256": "30b270bcfba8c5a02569160238c5e71c5cb07665c846f0c8334884722c5b007c",
+      "appearance": "사용자가 마지막으로 지정한 단독 남자 사진의 얼굴을 그대로 기준으로 사용. 눈매·코·입·턱선·피부 톤을 재해석하거나 이전 후보와 혼합하지 않는다.",
+      "preserve": [
+        "face shape",
+        "eyes and eyebrows",
+        "nose",
+        "lips",
+        "skin tone",
+        "hair color"
+      ],
+      "variable": [
+        "product",
+        "clothing appropriate to campaign",
+        "pose",
+        "lighting",
+        "background"
+      ],
+      "adult": true,
+      "reference_origin": "user_selected_photo"
+    }
+  ],
+  "wardrobe_policy": {
+    "fixed_outfit": false,
+    "select_per_product_and_campaign": true,
+    "direction": "현대적인 한국 패션 화보. 제품과 계절에 맞춰 스타일리시한 의상으로 변경.",
+    "continuity": "동일한 연속 장면 안에서는 의상 유지",
+    "identity": "의상·포즈·조명 변화와 얼굴 정체성 변경을 구분"
+  }
+}

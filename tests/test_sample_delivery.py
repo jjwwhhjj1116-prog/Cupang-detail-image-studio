@@ -159,6 +159,43 @@ class SampleDeliveryTests(unittest.TestCase):
         self.assertEqual(sample_delivery.validate_package(path)["video_mode"], studio.LEGACY_VIDEO)
         self.assertEqual(self.job_path.read_bytes(), before)
 
+    def test_no_caption_sample_preserves_original_data_without_display_subtitle_links(self):
+        self.job["caption_mode"] = studio.WITHOUT_CAPTIONS
+        studio.write_json(self.job_path, self.job)
+        for lead, entry in zip(self.job["leads"], self.layout["leads"]):
+            entry.pop("subtitle")
+            original = (self.root / entry["video"]).with_suffix(".source-captions.srt")
+            original.write_text(studio.srt(lead), encoding="utf8")
+            probe_path = self.root / entry["probe"]
+            probe = studio.read_json(probe_path)
+            probe.update(caption_mode=studio.WITHOUT_CAPTIONS, subtitles_burned_in=False, renderer="ffmpeg_without_text", caption_band_px=0)
+            studio.write_json(probe_path, probe)
+        path = self.build()
+        manifest = sample_delivery.validate_package(path)
+        self.assertEqual(manifest["caption_mode"], studio.WITHOUT_CAPTIONS)
+        self.assertTrue(all("subtitle" not in lead and "source_subtitle" in lead for lead in manifest["leads"]))
+        page = (path.parent / "preview.html").read_text(encoding="utf8")
+        self.assertIn("자막 없음", page)
+        self.assertIn("초별 영상 구성 보기", page)
+        self.assertNotIn("표시 SRT", page)
+        self.assertNotIn("초별 자막 보기", page)
+        self.assertNotIn(self.job["leads"][0]["seconds"][0]["caption"], page)
+        self.assertEqual((path.parent / manifest["leads"][0]["source_subtitle"]["file"]).read_text(encoding="utf8"), studio.srt(self.job["leads"][0]))
+        manifest["leads"][0]["caption_mode"] = studio.WITH_CAPTIONS
+        studio.write_json(path, manifest)
+        with self.assertRaisesRegex(ValueError, "caption mode differs"):
+            sample_delivery.validate_package(path)
+
+    def test_no_caption_package_rejects_captioned_probe_before_output_creation(self):
+        self.job["caption_mode"] = studio.WITHOUT_CAPTIONS
+        studio.write_json(self.job_path, self.job)
+        for lead, entry in zip(self.job["leads"], self.layout["leads"]):
+            entry.pop("subtitle")
+            (self.root / entry["video"]).with_suffix(".source-captions.srt").write_text(studio.srt(lead), encoding="utf8")
+        with self.assertRaisesRegex(ValueError, "caption mode differs"):
+            self.build()
+        self.assertFalse((self.root / "sample").exists())
+
 
 if __name__ == "__main__":
     unittest.main()

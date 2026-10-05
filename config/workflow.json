@@ -2,10 +2,38 @@
   "schema_version": 1,
   "mode": "codex_local_agent",
   "handoff_after_manual_step": 4,
-  "manual_steps": ["하디 채팅 시작", "제품 사진 제공", "TYPE 선택", "완성 프롬프트 수령"],
-  "automatic_stages": ["intake", "fact_check", "template_binding", "storyboard", "images", "flow_single_source", "timed_edit", "local_typography", "figma_composition", "qa", "export"],
-  "brands": ["와이홉", "유앤채"],
-  "template_types": [1, 2, 3, 4, 5, 6, 7],
+  "manual_steps": [
+    "하디 채팅 시작",
+    "제품 사진 제공",
+    "TYPE 선택",
+    "완성 프롬프트 수령"
+  ],
+  "automatic_stages": [
+    "intake",
+    "fact_check",
+    "template_binding",
+    "storyboard",
+    "images",
+    "flow_single_source",
+    "timed_edit",
+    "local_typography",
+    "figma_composition",
+    "qa",
+    "export"
+  ],
+  "brands": [
+    "와이홉",
+    "유앤채"
+  ],
+  "template_types": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7
+  ],
   "authentication": {
     "figma_primary": "existing_connected_plugin",
     "browser_fallback": "reuse_existing_authenticated_session",
@@ -31,7 +59,13 @@
     "reference_images_per_lead_max": 5,
     "reuse_reference_images": true,
     "source_duration_policy": "one_5s_source_if_supported_else_one_current_ui_supported_duration_then_local_5s_edit",
-    "required_ui_evidence": ["model", "source_duration_seconds", "output_count_x1", "credit_cost_ui", "screenshot_sha256"],
+    "required_ui_evidence": [
+      "model",
+      "source_duration_seconds",
+      "output_count_x1",
+      "credit_cost_ui",
+      "screenshot_sha256"
+    ],
     "reserve_request_before_submit": true,
     "automatic_per_scene_generation": false,
     "automatic_retry": false,
@@ -43,7 +77,13 @@
     "subtitle_timing": "same_as_one_second_segment",
     "edit_generated_footage_to_exact_timing": true,
     "audio_policy": "preserve_sources_no_added_music_or_voice_without_instruction",
-    "auto_purchase_credits": false
+    "auto_purchase_credits": false,
+    "caption_modes": [
+      "with-captions",
+      "without-captions"
+    ],
+    "default_caption_mode": "with-captions",
+    "caption_mode_change": "reuse_existing_source_and_shared_generation_reservations_local_edit_only"
   },
   "typography": {
     "stage": "after_flow_generation_local_edit",
@@ -54,10 +94,21 @@
     "caption_band_px": 0,
     "black_caption_bar": false,
     "product_overlap_review_required": true,
-    "creative_direction": ["editorial_wearing", "real_product_rotation", "product_details", "subtle_zoom", "safe_interval_slow_motion"],
+    "creative_direction": [
+      "editorial_wearing",
+      "real_product_rotation",
+      "product_details",
+      "subtle_zoom",
+      "safe_interval_slow_motion"
+    ],
     "preserve_original_copy": true,
     "edited_copy_requires_job_overlay_and_reason": true,
-    "invent_product_claims": false
+    "invent_product_claims": false,
+    "enabled_when_caption_mode": "with-captions",
+    "local_renderer": "remotion",
+    "clean_source_renderer": "ffmpeg_without_text",
+    "skills_lock": "config/remotion-skills.lock.json",
+    "runtime_version": "4.0.533"
   },
   "after_effects": {
     "installation_verified": false,
@@ -76,8 +127,42 @@
     "video_fill_support": "verify_at_runtime",
     "never_count_static_poster_as_playable_video": true
   },
-  "recovery": {"image_retry_confirmed_failed_generation_max": 2, "video_automatic_retry": false, "resume_verified_assets": true, "reconcile_unknown_generation_outcome_first": true, "preserve_legacy_v1_evidence": true},
-  "delivery": ["editable_figma_link", "ordered_detail_images", "lead-1.mp4", "lead-2.mp4", "timed_subtitles", "preview.html", "qa.json", "delivery-manifest.json"],
-  "completion_requires": ["all_required_assets_exist", "product_identity_review", "template_content_review", "video_timing_verified", "subtitle_review", "figma_render_review", "export_verified"],
-  "coupang_publish": false
+  "recovery": {
+    "image_retry_confirmed_failed_generation_max": 2,
+    "video_automatic_retry": false,
+    "resume_verified_assets": true,
+    "reconcile_unknown_generation_outcome_first": true,
+    "preserve_legacy_v1_evidence": true
+  },
+  "delivery": [
+    "editable_figma_link",
+    "ordered_detail_images",
+    "lead-1.mp4",
+    "lead-2.mp4",
+    "timed_subtitles",
+    "preview.html",
+    "qa.json",
+    "delivery-manifest.json"
+  ],
+  "completion_requires": [
+    "all_required_assets_exist",
+    "product_identity_review",
+    "template_content_review",
+    "video_timing_verified",
+    "caption_mode_appropriate_overlay_or_no_text_review",
+    "figma_render_review",
+    "export_verified"
+  ],
+  "coupang_publish": false,
+  "models": {
+    "registry": "config/models.json",
+    "fixed_face_identity": true,
+    "attach_canonical_portrait_and_product_photo": true,
+    "wardrobe_changes_per_product_and_campaign": true,
+    "identity_review_required": true
+  },
+  "delivery_by_caption_mode": {
+    "with-captions": "MP4 + display subtitles + source caption data",
+    "without-captions": "MP4 without text + source caption data; no display subtitle asset"
+  }
 }

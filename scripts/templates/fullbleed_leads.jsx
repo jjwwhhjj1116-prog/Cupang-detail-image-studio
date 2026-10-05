@@ -47,7 +47,7 @@
             comp = app.project.items.addComp(data.job_id + "__" + lead.id + "__FULLBLEED_V2", data.width, data.height, 1, 5, 30);
             comp.parentFolder = folder;
             comp.workAreaStart = 0; comp.workAreaDuration = 5;
-            comp.comment = "Full bleed. No caption band. Gmarket Sans TTF Bold. One generated storyboard source per lead when using single-source map. AE render not performed.";
+            comp.comment = "Full bleed. No caption band. Caption mode: " + data.caption_mode + ". One generated storyboard source per lead when using single-source map. AE render not performed.";
             for (j = 0; j < lead.shots.length; j++) {
                 shot = lead.shots[j];
                 key = data.workspace + "/" + shot.file;
@@ -74,6 +74,7 @@
                     transform(layer, "ADBE Scale").setValueAtTime(shot.end - 1/30, [endScale, endScale]);
                 }
                 if (layer.hasAudio) { layer.audioEnabled = data.audio_mode === "preserve"; }
+                if (data.caption_mode === "without-captions") { continue; }
                 if (shot.overlay_mode === "editorial") {
                     for (var k = 0; k < shot.text_layers.length; k++) { editorialText(comp, shot.text_layers[k], lead.design, shot.second); }
                     continue;

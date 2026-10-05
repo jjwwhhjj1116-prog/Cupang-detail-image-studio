@@ -89,6 +89,57 @@ async function fontsReady(nodes) {
   await Promise.all([...fonts.values()].map(f => figma.loadFontAsync(f)));
   return [...fonts.values()];
 }
+async function cloneFontPlan(nodes,fallbackFamily) {
+  if(!fallbackFamily) return {loadedFonts:await fontsReady(nodes),substitutions:[]};
+  const unique=new Map();
+  for(const n of nodes) for(const font of currentFonts(n)) unique.set(JSON.stringify(font),font);
+  const originalFonts=[...unique.values()];
+  const [catalog,attempts]=await Promise.all([
+    figma.listAvailableFontsAsync(),Promise.allSettled(originalFonts.map(font=>figma.loadFontAsync(font)))
+  ]);
+  const weights={thin:100,extralight:200,ultralight:200,light:300,demilight:350,regular:400,normal:400,
+    medium:500,semibold:600,demibold:600,bold:700,extrabold:800,ultrabold:800,black:900,heavy:900};
+  const normalized=s=>s.toLowerCase().replace(/[^a-z0-9]/g,'');
+  const candidates=catalog.map(f=>f.fontName).filter(f=>f.family===fallbackFamily);
+  const substitutions=[],loadedFonts=[];
+  for(let i=0;i<originalFonts.length;i++) {
+    const source=originalFonts[i];
+    if(attempts[i].status==='fulfilled') {loadedFonts.push(source);continue;}
+    if(source.family!=='Pretendard') throw new Error('Unsupported original font outside the permitted Pretendard fallback: '+JSON.stringify(source));
+    const sourceWeight=source.variationSettings?.wght ?? weights[normalized(source.style)];
+    const exact=candidates.find(f=>normalized(f.style)===normalized(source.style));
+    const ranked=candidates.filter(f=>Number.isFinite(weights[normalized(f.style)]))
+      .sort((a,b)=>Math.abs(weights[normalized(a.style)]-sourceWeight)-Math.abs(weights[normalized(b.style)]-sourceWeight)
+        || weights[normalized(b.style)]-weights[normalized(a.style)]);
+    const target=exact || (Number.isFinite(sourceWeight)?ranked[0]:null);
+    if(!target) throw new Error('No verified compatible '+fallbackFamily+' style for '+JSON.stringify(source));
+    substitutions.push({source,target,sourceWeight,targetWeight:weights[normalized(target.style)],reason:'original-font-unavailable'});
+  }
+  const fallbackFonts=[...new Map(substitutions.map(s=>[JSON.stringify(s.target),s.target])).values()];
+  await Promise.all(fallbackFonts.map(f=>figma.loadFontAsync(f)));
+  loadedFonts.push(...fallbackFonts);
+  return {loadedFonts,substitutions};
+}
+function applyCloneFonts(originals,copies,plan,changes) {
+  const replacements=new Map(plan.substitutions.map(s=>[JSON.stringify(s.source),s]));
+  for(let i=0;i<originals.length;i++) {
+    const source=originals[i],copy=copies[i];
+    if(source.type!=='TEXT') continue;
+    const before={width:source.width,height:source.height,textAutoResize:source.textAutoResize};
+    const segments=source.getStyledTextSegments(['fontName']);
+    if(!segments.length && source.fontName!==figma.mixed) segments.push({start:0,end:0,fontName:source.fontName});
+    for(const segment of segments) {
+      const replacement=replacements.get(JSON.stringify(segment.fontName));
+      if(!replacement) continue;
+      const start=segment.start??0,end=segment.end??source.characters.length;
+      if(start===end) copy.fontName=replacement.target;
+      else copy.setRangeFontName(start,end,replacement.target);
+      changes.push({sourceId:source.id,cloneId:copy.id,start,end,from:replacement.source,to:replacement.target,before,
+        after:{width:copy.width,height:copy.height,textAutoResize:copy.textAutoResize},
+        layoutReview:'pending',reason:replacement.reason});
+    }
+  }
+}
 '''
 
 
@@ -137,12 +188,14 @@ def validate_snapshot(snapshot):
             raise ValueError("Fresh compact source signatures are required; re-run inspect")
 
 
-def clone_payload(snapshot, job_id):
+def clone_payload(snapshot, job_id, font_fallback=None):
     validate_snapshot(snapshot)
+    if font_fallback not in (None, "Noto Sans KR"):
+        raise ValueError("Only the explicitly enabled Noto Sans KR fallback is supported")
     if not re.fullmatch(r"[A-Za-z0-9_-]{1,80}", job_id):
         raise ValueError("job_id must use 1-80 letters, digits, underscores or hyphens")
     wrapper_name = "상세페이지 · " + job_id + " · " + snapshot["templateType"]
-    code = COMMON + "\nconst snapshot = " + js(snapshot) + ";\nconst wrapperName = " + js(wrapper_name) + r''';
+    code = COMMON + "\nconst snapshot = " + js(snapshot) + ";\nconst wrapperName = " + js(wrapper_name) + ";\nconst fallbackFamily = " + js(font_fallback) + r''';
 const page = await figma.getNodeByIdAsync(snapshot.pageId);
 if (!page || page.type !== 'PAGE' || page.name !== snapshot.pageName) throw new Error('Source page changed.');
 await figma.setCurrentPageAsync(page);
@@ -156,9 +209,10 @@ for (const binding of snapshot.bindings) {
 }
 // All identity, type, geometry, content and font checks precede any mutation.
 const sourceNodes = sources.flatMap(s=>flat(s.node));
-const loadedFonts = await fontsReady(sourceNodes);
+const fontPlan = await cloneFontPlan(sourceNodes,fallbackFamily);
+const loadedFonts = fontPlan.loadedFonts;
 let right = 0; for (const n of page.children) right = Math.max(right,n.x+n.width);
-const createdNodeIds = [], sourceToClone = {}, sections = [];
+const createdNodeIds = [], sourceToClone = {}, sections = [], fontChanges = [];
 function finish(result) {
   if(jsonBytes(result,true)<=16000) return result;
   const name='''+js(job_id + "-clone-state.json")+r''';
@@ -186,18 +240,25 @@ try {
       if (originals[i].name!==copies[i].name || originals[i].type!==copies[i].type) throw new Error('Clone tree mismatch; inspect partial result.');
       sourceToClone[originals[i].id]=copies[i].id;
     }
+    // Target fonts were verified and loaded before cloning. Only copies are changed.
+    applyCloneFonts(originals,copies,fontPlan,fontChanges);
     wrapper.appendChild(copy);
     copy.layoutSizingHorizontal='FIXED'; copy.layoutSizingVertical='FIXED';
     sections.push({role:binding.role,offlineId:binding.offlineId,sourceId:node.id,cloneId:copy.id,
       sourceName:node.name,width:copy.width,height:copy.height});
   }
+  const masterUnchanged=sources.every(({binding,node})=>JSON.stringify(signature(flat(node)))===JSON.stringify(binding.sourceSignature));
+  if(!masterUnchanged) throw new Error('Master signature changed unexpectedly; stop and inspect.');
   return finish({schemaVersion:1,mode:'clone-result',status:'cloned-not-filled',fileKey:snapshot.fileKey,
     pageId:page.id,templateType:snapshot.templateType,wrapperId:wrapper.id,wrapperName,
-    sections,sourceToClone,loadedFonts,createdNodeIds,mutatedNodeIds:[],masterMutated:false});
+    sections,sourceToClone,loadedFonts,fontChanges,
+    fontQA:{status:fontChanges.length?'needs-render-review':'original-fonts-loaded',fallbackFamily,
+      requiredChecks:fontChanges.length?['actual-font-family','line-breaks','text-overflow','section-overlap']:[]},
+    createdNodeIds,mutatedNodeIds:[],masterMutated:false,masterSignatureVerified:true});
 } catch (error) {
   return finish({schemaVersion:1,mode:'clone-result',status:'partial',fileKey:snapshot.fileKey,
     pageId:page.id,templateType:snapshot.templateType,wrapperId:wrapper?.id,wrapperName,
-    sections,sourceToClone,createdNodeIds,mutatedNodeIds:[],masterMutated:false,
+    sections,sourceToClone,fontChanges,createdNodeIds,mutatedNodeIds:[],masterMutated:false,
     error:String(error),safeToRetryWithoutCanvasRead:false});
 }
 '''
@@ -301,6 +362,7 @@ def main(argv=None):
     inspect.add_argument("--type", required=True, choices=[f"TYPE{i}" for i in range(1,8)])
     inspect.add_argument("--page-id"); inspect.add_argument("--structure", type=Path, default=DEFAULT_STRUCTURE)
     clone = sub.add_parser("clone"); clone.add_argument("--snapshot", type=Path, required=True); clone.add_argument("--job-id", required=True)
+    clone.add_argument("--font-fallback", choices=["Noto Sans KR"], help="Explicitly replace unavailable Pretendard in clones only; render review remains required")
     output = sub.add_parser("inspect-output"); output.add_argument("--clone-state", type=Path, required=True)
     output.add_argument("--section-id"); output.add_argument("--offset", type=int, default=0); output.add_argument("--limit", type=int, default=20)
     text = sub.add_parser("text"); text.add_argument("--clone-state", type=Path, required=True); text.add_argument("--edits", type=Path, required=True)
@@ -310,7 +372,7 @@ def main(argv=None):
             result=payload(args.file_key,"return {pages:figma.root.children.map(p=>({id:p.id,name:p.name,type:p.type})),createdNodeIds:[],mutatedNodeIds:[]};","Discover template pages")
         elif args.command == "inspect":
             result=inspect_payload(args.file_key,read_json(args.structure),args.type,args.page_id)
-        elif args.command == "clone": result=clone_payload(read_json(args.snapshot),args.job_id)
+        elif args.command == "clone": result=clone_payload(read_json(args.snapshot),args.job_id,args.font_fallback)
         elif args.command == "inspect-output": result=output_payload(read_json(args.clone_state),args.section_id,args.offset,args.limit)
         else: result=text_payload(read_json(args.clone_state),read_json(args.edits))
     except (ValueError, KeyError, TypeError) as exc:

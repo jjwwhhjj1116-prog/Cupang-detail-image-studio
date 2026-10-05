@@ -9,7 +9,7 @@ import tempfile
 from fractions import Fraction
 from pathlib import Path
 
-from studio import digest, read_json, require, validate, write_json
+from studio import digest, read_json, require, srt, validate, write_json
 
 
 def run(argv, cwd=None):
@@ -37,8 +37,21 @@ def ass_escape(text):
     return text.replace("\\", "\\\\").replace("{", "\\{").replace("}", "\\}").replace("\r", "").replace("\n", "\\N")
 
 
-def ass(lead, width, height):
+def ass(lead, width, height, caption_band=0, style="plain"):
+    require(style in {"plain", "kinetic"}, "Unknown typography style")
+    if style == "kinetic":
+        return kinetic_ass(lead, width, height, caption_band)
+    require(type(caption_band) is int and 0 <= caption_band < height, "Caption band must be nonnegative and smaller than video height")
     font_size = max(18, round(width / 22))
+    alignment, margin_v, position = 2, round(height * .07), ""
+    if caption_band:
+        lines = [line for shot in lead["seconds"] for line in shot["caption"].splitlines()]
+        line_count = max(len(shot["caption"].splitlines()) for shot in lead["seconds"])
+        font_size = min(font_size, int((caption_band - 12) / (1.5 * line_count)),
+                        int((width - 48) / max(len(line) for line in lines)))
+        require(font_size >= 14, "Caption band is too small for readable captions")
+        alignment, margin_v = 5, 0
+        position = f"{{\\an5\\pos({width / 2:g},{height - caption_band / 2:g})}}"
     header = f"""[Script Info]
 ScriptType: v4.00+
 PlayResX: {width}
@@ -47,29 +60,62 @@ WrapStyle: 0
 
 [V4+ Styles]
 Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
-Style: Default,Malgun Gothic,{font_size},&H00FFFFFF,&H00FFFFFF,&H00000000,&H80000000,-1,0,0,0,100,100,0,0,1,2,0,2,24,24,{round(height * .07)},1
+Style: Default,Malgun Gothic,{font_size},&H00FFFFFF,&H00FFFFFF,&H00000000,&H80000000,-1,0,0,0,100,100,0,0,1,2,0,{alignment},24,24,{margin_v},1
 
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 """
     return header + "\n".join(
-        f"Dialogue: 0,0:00:0{s['second'] - 1}.00,0:00:0{s['second']}.00,Default,,0,0,0,,{ass_escape(s['caption'])}"
+        f"Dialogue: 0,0:00:0{s['second'] - 1}.00,0:00:0{s['second']}.00,Default,,0,0,0,,{position}{ass_escape(s['caption'])}"
         for s in lead["seconds"]) + "\n"
 
 
-def assemble(lead, clips, output, width, height, ffmpeg="ffmpeg", ffprobe="ffprobe", audio=None, starts=None):
+def kinetic_ass(lead, width, height, caption_band):
+    from typography import kinetic_design
+    design = kinetic_design(lead, width, height, caption_band)
+    base = ass(lead, width, height, caption_band)
+    header = base[:base.index("Dialogue:")]
+    lines = []
+    def event(shot, layer, tags, text):
+        return f"Dialogue: {layer},0:00:0{shot['start']}.00,0:00:0{shot['end']}.00,Default,,0,0,0,,{{{tags}}}{text}"
+    cx, cy = design["caption_center"]
+    ax, ay = design["accent_center"]
+    for shot in design["shots"]:
+        lines.append(event(shot, 1, f"\\an5\\pos({cx:g},{cy:g})\\fs{design['main_font_size']}\\bord0", ass_escape(shot["caption"])))
+        accent = (f"\\an5\\move({ax-10:g},{ay:g},{ax:g},{ay:g},0,120)\\fs16\\bord0"
+                  f"\\c{design['lime_ass']}\\fscx88\\fscy88\\t(0,60,\\fscx110\\fscy110)\\t(60,120,\\fscx100\\fscy100)")
+        lines.append(event(shot, 2, accent, ass_escape(shot["keyword"])))
+        step = (width - 48) / 5
+        for index in range(5):
+            x, y = 24 + index * step, design["progress_y"]
+            bar_width = step - design["progress_gap"]
+            color = design["lime_ass"] if index < shot["second"] else "&H333333&"
+            tags = f"\\an7\\pos({x:g},{y:g})\\p1\\bord0\\shad0\\c{color}"
+            lines.append(event(shot, 0, tags, f"m 0 0 l {bar_width:g} 0 l {bar_width:g} 2 l 0 2"))
+    return header + "\n".join(lines) + "\n"
+
+
+def assemble(lead, clips, output, width, height, ffmpeg="ffmpeg", ffprobe="ffprobe", audio=None, starts=None, caption_band=0, style="plain", source_durations=None):
     require(len(clips) == 5, "Exactly five source clips are required, ordered by second")
     starts = starts if starts is not None else [0.0] * 5
     require(len(starts) == 5 and all(isinstance(n, (int, float)) and math.isfinite(n) and n >= 0 for n in starts),
             "Clip start offsets must contain five nonnegative finite seconds")
+    source_durations = source_durations if source_durations is not None else [1.0] * 5
+    require(len(source_durations) == 5 and all(type(n) in {int, float} and math.isfinite(n) and 1 / 99 <= n <= 100 for n in source_durations),
+            "Source durations must contain five finite values from 1/99 to 100 seconds")
     require(type(width) is int and type(height) is int and width > 0 and height > 0 and width % 2 == height % 2 == 0,
             "Video dimensions must be positive even integers")
+    caption_script = ass(lead, width, height, caption_band, style)
     clips = [Path(path).resolve() for path in clips]
     output = Path(output).resolve()
     require(output.suffix.lower() == ".mp4", "Output must be an MP4 file")
     for clip in clips:
         require(clip.is_file(), f"Missing source clip: {clip}")
         require(clip != output, "Output cannot replace a source clip")
+    source_metadata = {clip: probe(clip, ffprobe) for clip in set(clips)}
+    for clip, begin, duration in zip(clips, starts, source_durations):
+        available = float(source_metadata[clip]["format"]["duration"])
+        require(begin + duration <= available + .000001, "Approved source window exceeds the source video duration")
     if audio:
         audio = Path(audio).resolve()
         require(audio.is_file() and audio != output, "Invalid audio source")
@@ -78,13 +124,21 @@ def assemble(lead, clips, output, width, height, ffmpeg="ffmpeg", ffprobe="ffpro
     with tempfile.TemporaryDirectory(prefix="lead-render-", dir=output.parent) as temp:
         temp = Path(temp)
         filters = f"fps=30,scale={width}:{height}:force_original_aspect_ratio=decrease,pad={width}:{height}:(ow-iw)/2:(oh-ih)/2,setsar=1"
+        if caption_band:
+            content_height = height - caption_band
+            filters = (f"fps=30,scale={width}:{content_height}:force_original_aspect_ratio=decrease:force_divisible_by=2,"
+                       f"pad={width}:{height}:(ow-iw)/2:({content_height}-ih)/2:color=black,setsar=1")
         for index, clip in enumerate(clips):
             segment = temp / f"segment-{index}.mp4"
-            run([ffmpeg, "-v", "error", "-nostdin", "-ss", starts[index], "-i", clip, "-map", "0:v:0", "-an", "-vf", filters,
+            # Trim before retiming/resampling: no frame outside the approved half-open source window can enter.
+            duration = source_durations[index]
+            timed_filters = (f"trim=start=0:end={duration:.9f},setpts=(PTS-STARTPTS)/{duration:.9f},"
+                             f"{filters},tpad=stop_mode=clone:stop_duration=1,trim=end_frame=30")
+            run([ffmpeg, "-v", "error", "-nostdin", "-ss", starts[index], "-i", clip, "-map", "0:v:0", "-an", "-vf", timed_filters,
                  "-frames:v", "30", "-c:v", "libx264", "-pix_fmt", "yuv420p", "-y", segment])
             check_video(probe(segment, ffprobe), 30, width, height)
         (temp / "segments.txt").write_text("".join(f"file 'segment-{i}.mp4'\n" for i in range(5)), encoding="utf-8")
-        (temp / "captions.ass").write_text(ass(lead, width, height), encoding="utf-8-sig")
+        (temp / "captions.ass").write_text(caption_script, encoding="utf-8-sig")
         argv = [ffmpeg, "-v", "error", "-nostdin", "-f", "concat", "-safe", "1", "-i", "segments.txt"]
         if audio:
             argv += ["-i", audio, "-map", "0:v:0", "-map", "1:a:0", "-af", "apad,atrim=duration=5", "-c:a", "aac"]
@@ -97,10 +151,21 @@ def assemble(lead, clips, output, width, height, ffmpeg="ffmpeg", ffprobe="ffpro
         check_video(metadata, 150, width, height)
         shutil.copyfile(temp / "render.mp4", output)
         shutil.copyfile(temp / "captions.ass", output.with_suffix(".ass"))
+    output.with_suffix(".srt").write_text(srt(lead), encoding="utf-8")
+    write_json(output.with_suffix(".sources.json"), {
+        "lead_id": lead["id"], "artifact_sha256": digest(output), "caption_band_px": caption_band, "style": style, "sources": [
+            {"second": index + 1, "file": str(clip), "sha256": digest(clip), "start_seconds": starts[index],
+             "selected_duration_seconds": source_durations[index], "output_duration_seconds": 1,
+             "playback_speed": source_durations[index], "time_stretch_percent": 100 / source_durations[index],
+             "source_end_seconds_exclusive": starts[index] + source_durations[index],
+             "output_start_frame": index * 30, "output_end_frame_exclusive": (index + 1) * 30}
+            for index, clip in enumerate(clips)]})
     write_json(output.with_suffix(".probe.json"), {
         "artifact_sha256": digest(output), "metadata": metadata,
         "mechanical_checks": {"duration": "pass", "frame_count": "pass", "fps": "pass", "dimensions": "pass"},
         "visual_review_required": ["product_fidelity", "subtitle_timing", "Korean font rendering", "scene action"],
+        "caption_band_px": caption_band, "content_region": {"x": 0, "y": 0, "width": width, "height": height - caption_band},
+        "style": style, "renderer": "ffmpeg_libass", "after_effects_render": False,
         "audio_mode": "provided_track" if audio else "mute"})
     return output
 
@@ -110,7 +175,10 @@ def main():
     parser.add_argument("job"); parser.add_argument("--lead", choices=["lead-1", "lead-2"], required=True)
     parser.add_argument("--clips", nargs=5, required=True); parser.add_argument("--output", required=True)
     parser.add_argument("--starts", nargs=5, type=float, help="Usable action start in each source clip, in seconds")
+    parser.add_argument("--source-durations", nargs=5, type=float, help="Approved source seconds per shot; each is retimed to exactly one output second")
     parser.add_argument("--width", type=int, required=True); parser.add_argument("--height", type=int, required=True)
+    parser.add_argument("--caption-band", type=int, default=0, help="Black lower caption band in pixels; default 0 preserves overlay layout")
+    parser.add_argument("--style", choices=["plain", "kinetic"], default="plain")
     parser.add_argument("--ffmpeg", default="ffmpeg"); parser.add_argument("--ffprobe", default="ffprobe")
     sound = parser.add_mutually_exclusive_group(required=True)
     sound.add_argument("--mute", action="store_true"); sound.add_argument("--audio")
@@ -118,7 +186,7 @@ def main():
     try:
         job = validate(read_json(args.job))
         lead = next(item for item in job["leads"] if item["id"] == args.lead)
-        print(assemble(lead, args.clips, args.output, args.width, args.height, args.ffmpeg, args.ffprobe, args.audio, args.starts))
+        print(assemble(lead, args.clips, args.output, args.width, args.height, args.ffmpeg, args.ffprobe, args.audio, args.starts, args.caption_band, args.style, args.source_durations))
     except (ValueError, OSError, KeyError, TypeError, subprocess.CalledProcessError) as error:
         parser.exit(2, f"Error: {error}\n")
 

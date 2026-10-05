@@ -193,6 +193,109 @@ class StudioTests(unittest.TestCase):
         self.assertIn("Malgun Gothic", output)
         self.assertIn("\\{", media.ass_escape("{tag}"))
 
+    def test_caption_band_centers_subtitles_without_changing_timing(self):
+        lead = self.job["leads"][0]
+        original = media.ass(lead, 768, 500)
+        self.assertEqual(original, media.ass(lead, 768, 500, caption_band=0))
+        self.assertNotIn("\\pos", original)
+        band = media.ass(lead, 768, 500, caption_band=76)
+        self.assertEqual(band.count("{\\an5\\pos(384,462)}"), 5)
+        self.assertIn("0:00:04.00,0:00:05.00", band)
+        self.assertIn("Malgun Gothic,35,", band)
+        for size in [-1, 1, 500, True]:
+            with self.subTest(size=size), self.assertRaises(ValueError):
+                media.ass(lead, 768, 500, caption_band=size)
+
+    def test_caption_band_accommodates_explicit_two_line_caption(self):
+        lead = copy.deepcopy(self.job["leads"][0])
+        lead["seconds"][0]["caption"] = "첫 번째 줄\n두 번째 줄"
+        output = media.ass(lead, 768, 500, caption_band=76)
+        self.assertIn("Malgun Gothic,21,", output)
+        self.assertIn("첫 번째 줄\\N두 번째 줄", output)
+
+    def record_sample_fixture(self):
+        """State tests use synthetic bytes; media probing is explicitly mocked by callers."""
+        path = studio.plan(self.job_path, self.root, self.root / "sample-plan", scope="lead-sample")
+        for item in studio.read_json(path)["artifacts"]:
+            suffix = ".srt" if item["kind"] == "subtitle" else ".mp4" if "video" in item["kind"] else ".png"
+            file = f"sample/{item['id']}{suffix}"
+            target = self.root / file
+            target.parent.mkdir(exist_ok=True)
+            if item["kind"] == "subtitle":
+                lead = next(lead for lead in self.job["leads"] if lead["id"] == item["lead_id"])
+                target.write_text(studio.srt(lead), encoding="utf-8")
+            else:
+                target.write_bytes(b"\x00\x00\x00\x18ftypisom" + item["id"].encode())
+            qa_file = f"qa/{item['id']}.json"
+            studio.write_json(self.root / qa_file, {"artifact_sha256": studio.digest(target), "checks": [
+                {"name": name, "status": "pass", "evidence": "Synthetic unit-test evidence only"}
+                for name in studio.CHECKS[item["kind"]]]})
+            studio.record(path, item["id"], file, qa_file)
+        return path
+
+    def test_lead_sample_plan_excludes_detail_page_work(self):
+        path = studio.plan(self.job_path, self.root, self.root / "sample-plan", scope="lead-sample")
+        state = studio.read_json(path)
+        self.assertEqual(len(state["artifacts"]), 24)
+        self.assertNotIn("hero", {item["id"] for item in state["artifacts"]})
+        self.assertNotIn("detail-page", {item["id"] for item in state["artifacts"]})
+        self.assertFalse(state["page_complete"])
+        self.assertFalse((self.root / "sample-plan/prompts/hero.txt").exists())
+        self.assertEqual(sum(item["kind"] == "source-video" for item in state["artifacts"]), 10)
+        with self.assertRaises(ValueError): studio.complete(path)
+
+    def test_verified_sample_never_means_completed_page(self):
+        path = self.record_sample_fixture()
+        with patch.object(studio, "inspect_sample_video", return_value={"synthetic": True}) as inspect:
+            studio.complete(path)
+        state = studio.read_json(path)
+        self.assertEqual(inspect.call_count, 2)
+        self.assertEqual(state["status"], "sample_verified")
+        self.assertFalse(state["page_complete"])
+        self.assertEqual(set(state["sample_video_metadata"]), {"lead-1", "lead-2"})
+        state["status"] = "complete"
+        studio.write_json(path, state)
+        with self.assertRaises(ValueError): studio.load_state(path)
+
+    def test_sample_video_probe_failure_blocks_verification(self):
+        path = self.record_sample_fixture()
+        with patch.object(studio, "inspect_sample_video", side_effect=ValueError("wrong duration")), self.assertRaises(ValueError):
+            studio.complete(path)
+        self.assertEqual(studio.read_json(path)["status"], "needs_review")
+        self.assertFalse(studio.read_json(path)["page_complete"])
+
+    def test_sample_subtitles_must_exactly_match_the_job(self):
+        file = self.root / "bad.srt"
+        file.write_text(studio.srt(self.job["leads"][0]).replace("00:00:01,000", "00:00:01,200"), encoding="utf-8")
+        (self.root / "qa.json").write_text("{}", encoding="utf-8")
+        with self.assertRaises(ValueError):
+            studio.verify_evidence(self.root, {"id": "lead-1-subtitles", "kind": "subtitle"}, "bad.srt", "qa.json", expected_job=self.job)
+
+    def test_full_resume_reuses_verified_leads_and_keeps_page_pending(self):
+        path = self.record_sample_fixture()
+        with patch.object(studio, "inspect_sample_video", return_value={"synthetic": True}):
+            studio.complete(path)
+            full_job = copy.deepcopy(self.job)
+            full_job["sections"][-1]["text"] = "전체 페이지 제작에서 수정한 설명"
+            full_path = self.root / "full-job.json"
+            studio.write_json(full_path, full_job)
+            full_state_path = studio.plan(full_path, self.root, self.root / "full-plan", reuse_sample=path)
+        full_state = studio.read_json(full_state_path)
+        self.assertEqual(full_state["status"], "in_progress")
+        self.assertFalse(full_state["page_complete"])
+        self.assertEqual(sum(item["status"] == "verified" for item in full_state["artifacts"]), 12)
+        self.assertEqual({item["id"] for item in full_state["artifacts"] if item["status"] == "pending"}, {"hero", "detail-page"})
+        with self.assertRaises(ValueError): studio.complete(full_state_path)
+
+    def test_changed_lead_cannot_reuse_sample(self):
+        path = self.record_sample_fixture()
+        with patch.object(studio, "inspect_sample_video", return_value={"synthetic": True}): studio.complete(path)
+        changed = copy.deepcopy(self.job)
+        changed["leads"][0]["seconds"][0]["caption"] = "변경한 자막"
+        changed_path = self.root / "changed-job.json"
+        studio.write_json(changed_path, changed)
+        with self.assertRaises(ValueError): studio.plan(changed_path, self.root, self.root / "full-plan", reuse_sample=path)
+
 
 if __name__ == "__main__":
     unittest.main()

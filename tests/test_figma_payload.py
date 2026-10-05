@@ -23,12 +23,14 @@ class Node {
  }
  appendChild(c) {if(c.parent)c.parent.children=c.parent.children.filter(n=>n!==c);this.children.push(c);c.parent=this;}
  resize(w,h){this.width=w;this.height=h;}
- getStyledTextSegments(){return [{fontName:this.fontName}];}
- clone(){const n=new Node('clone:'+serial++,this.name,this.type,this.width,this.height);creations++;n.x=this.x;n.y=this.y;n.characters=this.characters;n.fills=this.fills.map(f=>({...f}));for(const c of this.children)n.appendChild(c.clone());page.appendChild(n);return n;}
+ getStyledTextSegments(){return [{start:0,end:this.characters.length,fontName:this.fontName}];}
+ setRangeFontName(start,end,font){this.fontName={...font};this.width+=8;this.height+=2;}
+ clone(){const n=new Node('clone:'+serial++,this.name,this.type,this.width,this.height);creations++;n.x=this.x;n.y=this.y;n.characters=this.characters;n.fontName={...this.fontName};n.fills=this.fills.map(f=>({...f}));for(const c of this.children)n.appendChild(c.clone());page.appendChild(n);return n;}
 }
 const page=new Node('page:live','Templates','PAGE');
 const frame=new Node('source:live','6-1','FRAME',780,473);frame.y=10;page.appendChild(frame);
 const text=new Node('source:text','Title','TEXT',500,100);frame.appendChild(text);
+if(input.sourceFont)text.fontName=input.sourceFont;
 const video=new Node('source:video','Group 15','GROUP',688,400);video.y=600;page.appendChild(video);
 if(input.specs) {
  page.children=[];page.name=input.pageName;
@@ -45,7 +47,8 @@ const files={};
 const figma={root:{children:[page]},currentPage:page,mixed:Symbol('mixed'),
  io:{write(name,data){files[name]=data;}},
  async setCurrentPageAsync(p){this.currentPage=p;},async getNodeByIdAsync(id){return registry.get(id)||null;},
- async loadFontAsync(f){fontLoads++;if(input.failFont)throw Error('Font unavailable');},
+ async listAvailableFontsAsync(){return (input.availableFonts||[{family:'Noto Sans KR',style:'Bold'},{family:'Noto Sans KR',style:'Medium'},{family:'Noto Sans KR',style:'Black'}]).map(fontName=>({fontName}));},
+ async loadFontAsync(f){fontLoads++;if(input.failFont || f.family===input.missingFamily)throw Error('Font unavailable');},
  createAutoLayout(){creations++;const n=new Node('wrapper:'+serial++,'','FRAME');page.appendChild(n);return n;}
 };
 async function run(code){return await new (Object.getPrototypeOf(async function(){}).constructor)('figma',code)(figma);}
@@ -54,7 +57,7 @@ async function run(code){return await new (Object.getPrototypeOf(async function(
   let result=await run(input.code);
   if(input.nextCode){if(input.stale)text.characters='changed';result=await run(input.nextCode.replace('__SNAPSHOT__',JSON.stringify(result)));}
   if(input.lastCode){const state=result.fullResultFile?JSON.parse(files[result.fullResultFile]):result;result=await run(input.lastCode.replace('__CLONE_STATE__',JSON.stringify(state)));}
-  process.stdout.write(JSON.stringify({ok:true,result,creations,fontLoads,sourceText:text.characters,files}));
+  process.stdout.write(JSON.stringify({ok:true,result,creations,fontLoads,sourceText:text.characters,sourceFont:text.fontName,files}));
  }catch(e){process.stdout.write(JSON.stringify({ok:false,error:String(e),creations,fontLoads,sourceText:text.characters}));}
 })();
 '''
@@ -194,6 +197,32 @@ class PayloadTests(unittest.TestCase):
         second=run(code)
         self.assertEqual(second['nodes'][0]['type'],'TEXT')
         self.assertIsNone(second['nextOffset'])
+
+    @unittest.skipUnless(NODE,"Node is needed for executable Figma adapter tests")
+    def test_explicit_fallback_changes_only_clones_and_keeps_qa_pending(self):
+        inspect=fp.inspect_payload('abcdefgh1234',synthetic_structure(),'TYPE6')['code']
+        seed=synthetic_snapshot()
+        clone=fp.clone_payload(seed,'fallback-job','Noto Sans KR')['code'].replace('const snapshot = '+fp.js(seed)+';', 'const snapshot = __SNAPSHOT__;')
+        def run(**flags):
+            p=subprocess.run([NODE,'-e',HARNESS],input=json.dumps({'code':inspect,'nextCode':clone,**flags}),
+                             text=True,capture_output=True,check=True,encoding='utf8')
+            return json.loads(p.stdout)
+        result=run(missingFamily='Pretendard',sourceFont={'family':'Pretendard','style':'SemiBold'})
+        self.assertTrue(result['ok'],result)
+        self.assertEqual(result['sourceFont'],{'family':'Pretendard','style':'SemiBold'})
+        change=result['result']['fontChanges'][0]
+        self.assertEqual(change['to'],{'family':'Noto Sans KR','style':'Bold'})
+        self.assertNotEqual(change['sourceId'],change['cloneId'])
+        self.assertNotEqual(change['before']['width'],change['after']['width'])
+        self.assertEqual(result['result']['fontQA']['status'],'needs-render-review')
+        self.assertTrue(result['result']['masterSignatureVerified'])
+        original_supported=run()
+        self.assertEqual(original_supported['result']['fontChanges'],[])
+        for flags in [{'missingFamily':'Pretendard','availableFonts':[]},
+                      {'missingFamily':'Other','sourceFont':{'family':'Other','style':'Bold'}}]:
+            failed=run(**flags)
+            self.assertFalse(failed['ok'],failed)
+            self.assertEqual(failed['creations'],0)
 
 
 if __name__=='__main__': unittest.main()

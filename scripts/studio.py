@@ -11,6 +11,8 @@ SLUG = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*\Z")
 CHECKS = {
     "image": {"product_fidelity", "prompt_match"},
     "video": {"product_fidelity", "duration", "frame_count", "subtitle_timing"},
+    "source-video": {"product_fidelity", "scene_action", "source_trace"},
+    "subtitle": {"subtitle_timing", "caption_match"},
     "export": {"template_mapping", "product_fidelity", "text_layout", "brand"},
 }
 
@@ -90,7 +92,8 @@ def validate(job, workspace=None):
     require(isinstance(sections, list) and sections, "sections must be a nonempty array")
     ids, image_ids, slot_ids, video_ids = set(), set(), set(), []
     reserved = {"detail-page", "lead-1", "lead-2"} | {
-        f"lead-{lead}-frame-{second:02d}" for lead in (1, 2) for second in range(1, 6)}
+        f"lead-{lead}-{kind}-{second:02d}" for lead in (1, 2) for kind in ("frame", "source") for second in range(1, 6)} | {
+        "lead-1-subtitles", "lead-2-subtitles"}
     for section in sections:
         require(isinstance(section, dict), "Section must be an object")
         sid = section.get("id")
@@ -131,12 +134,16 @@ def image_assets(job):
     return [dict(asset, section_id=section["id"]) for section in job["sections"] for asset in section_image_assets(section)]
 
 
-def artifacts(job):
-    items = [{"id": asset["asset_id"], "kind": "image"} for asset in image_assets(job)]
+def artifacts(job, scope="full"):
+    require(scope in {"full", "lead-sample"}, "Scope must be full or lead-sample")
+    items = [{"id": asset["asset_id"], "kind": "image"} for asset in image_assets(job)] if scope == "full" else []
     for lead in job["leads"]:
         items.extend({"id": f"{lead['id']}-frame-{shot['second']:02d}", "kind": "image"} for shot in lead["seconds"])
+        if scope == "lead-sample":
+            items.extend({"id": f"{lead['id']}-source-{shot['second']:02d}", "kind": "source-video"} for shot in lead["seconds"])
+            items.append({"id": f"{lead['id']}-subtitles", "kind": "subtitle", "lead_id": lead["id"]})
         items.append({"id": lead["id"], "kind": "video"})
-    return items + [{"id": "detail-page", "kind": "export"}]
+    return items + ([{"id": "detail-page", "kind": "export"}] if scope == "full" else [])
 
 
 def srt(lead):
@@ -160,20 +167,34 @@ def ingest(prompt_path, output, job_id, brand, selected_type):
                         "sections": sections, "leads": []})
 
 
-def plan(job_path, workspace, output):
+def plan(job_path, workspace, output, scope="full", reuse_sample=None):
     workspace, output = Path(workspace).resolve(), Path(output).resolve()
     require(output.is_relative_to(workspace), "Plan directory must be inside workspace")
     job = validate(read_json(job_path), workspace)
+    require(scope in {"full", "lead-sample"}, "Scope must be full or lead-sample")
+    require(not reuse_sample or scope == "full", "Only full plans can reuse a verified lead sample")
     state_path = output / "state.json"
     if state_path.exists():
         state = load_state(state_path)
         require(state["job_sha256"] == digest(job_path), "Plan already exists for different job content")
+        require(state.get("scope", "full") == scope, "Plan exists for a different scope; use another plan folder")
         return state_path
+    reused = None
+    if reuse_sample:
+        reused = load_state(reuse_sample)
+        require(reused.get("scope") == "lead-sample" and reused["status"] == "sample_verified", "Sample has not been verified")
+        require(Path(reused["workspace"]).resolve() == workspace, "Sample and full plan must share a workspace")
+        original = read_json(reused["job_path"])
+        require(all(job[key] == original[key] for key in ("job_id", "brand", "type", "leads")), "Sample identity or lead script changed")
+        require(job["product"]["photos"] == original["product"]["photos"], "Sample reference photos changed")
+        complete(reuse_sample)
+        reused = load_state(reuse_sample)
     (output / "prompts").mkdir(parents=True, exist_ok=True)
     tasks = []
-    for asset in image_assets(job):
+    planned_images = image_assets(job) if scope == "full" else []
+    for asset in planned_images:
         (output / "prompts" / f"{asset['asset_id']}.txt").write_text(asset["image_prompt"], encoding="utf-8")
-    write_json(output / "image-tasks.json", image_assets(job))
+    write_json(output / "image-tasks.json", planned_images)
     for lead in job["leads"]:
         (output / f"{lead['id']}.srt").write_text(srt(lead), encoding="utf-8")
         for shot in lead["seconds"]:
@@ -182,12 +203,18 @@ def plan(job_path, workspace, output):
             tasks.append(dict(shot, lead_id=lead["id"], image_asset_id=aid,
                               start_frame=(shot["second"] - 1) * 30, end_frame=shot["second"] * 30))
     write_json(output / "timeline.json", {"fps": 30, "frames_per_lead": 150, "end_frame_exclusive": True, "tasks": tasks})
-    write_json(state_path, {"schema_version": 1, "status": "planned", "workspace": str(workspace),
+    items = [dict(item, status="pending") for item in artifacts(job, scope)]
+    if reused:
+        reusable = {item["id"]: item for item in reused["artifacts"]}
+        items = [dict(reusable[item["id"]]) if item["id"] in reusable else item for item in items]
+    write_json(state_path, {"schema_version": 1, "status": "in_progress" if reused else "planned", "scope": scope,
+                           "page_complete": False, "workspace": str(workspace),
                            "job_path": str(Path(job_path).resolve()), "job_sha256": digest(job_path),
                            "job_identity": {key: job[key] for key in ("job_id", "brand", "type")},
                            "reference_sha256": [{"file": path, "sha256": digest(relative_path(path, workspace))}
                                                 for path in job["product"]["photos"]],
-                           "artifacts": [dict(item, status="pending") for item in artifacts(job)]})
+                           "reused_sample": str(Path(reuse_sample).resolve()) if reuse_sample else None,
+                           "artifacts": items})
     return state_path
 
 
@@ -198,8 +225,10 @@ def load_state(path):
     require(state.get("job_identity") == {key: job[key] for key in ("job_id", "brand", "type")}, "State job identity changed")
     references = [{"file": path, "sha256": digest(relative_path(path, state["workspace"]))} for path in job["product"]["photos"]]
     require(state.get("reference_sha256") == references, "Reference photo changed; create a new plan")
-    require([(a["id"], a["kind"]) for a in state["artifacts"]] == [(a["id"], a["kind"]) for a in artifacts(job)],
+    require([(a["id"], a["kind"]) for a in state["artifacts"]] == [(a["id"], a["kind"]) for a in artifacts(job, state.get("scope", "full"))],
             "State artifact set does not match source job")
+    require(state.get("scope") != "lead-sample" or (state["status"] != "complete" and not state.get("page_complete")),
+            "A lead sample cannot be a completed detail page")
     return state
 
 
@@ -207,6 +236,14 @@ def verify_evidence(workspace, item, file, qa_file, expected=None, expected_job=
     artifact, qa_path = relative_path(file, workspace), relative_path(qa_file, workspace)
     require(artifact.is_file() and artifact.stat().st_size > 0, f"Missing/empty artifact: {file}")
     require(qa_path.is_file(), f"Missing QA evidence: {qa_file}")
+    if item["kind"] == "source-video":
+        with artifact.open("rb") as stream:
+            require(b"ftyp" in stream.read(32), "Flow source must be an actual MP4 container")
+    if item["kind"] == "subtitle":
+        require(expected_job is not None, "Subtitle verification requires the source job")
+        lead_id = item["id"].removesuffix("-subtitles")
+        lead = next(lead for lead in expected_job["leads"] if lead["id"] == lead_id)
+        require(artifact.read_text(encoding="utf-8-sig") == srt(lead), "Subtitles do not exactly match the five one-second captions")
     if item["kind"] == "export":
         from delivery import validate_manifest
         manifest = validate_manifest(artifact, workspace, expected_job=expected_job)
@@ -232,6 +269,7 @@ def record(state_path, asset_id, file, qa_file):
     proof = verify_evidence(state["workspace"], item, file, qa_file, state["job_identity"], read_json(state["job_path"]))
     item.update(proof, status="verified")
     state["status"] = "in_progress"
+    state["page_complete"] = False
     write_json(state_path, state)
 
 
@@ -243,13 +281,34 @@ def complete(state_path):
             require(item.get("status") == "verified", f"Artifact not verified: {item['id']}")
             proof = verify_evidence(state["workspace"], item, item["file"], item["qa_file"], state["job_identity"], job)
             require(all(item.get(k) == v for k, v in proof.items()), f"Recorded artifact/evidence changed: {item['id']}")
+        if state.get("scope") == "lead-sample":
+            state["sample_video_metadata"] = {}
+            for item in state["artifacts"]:
+                if item["kind"] == "video":
+                    state["sample_video_metadata"][item["id"]] = inspect_sample_video(relative_path(item["file"], state["workspace"]))
     except (ValueError, OSError, KeyError, TypeError) as error:
-        state.update(status="needs_review", last_error=str(error))
+        state.update(status="needs_review", page_complete=False, last_error=str(error))
         write_json(state_path, state)
         raise
-    state["status"] = "complete"
+    state["status"] = "sample_verified" if state.get("scope") == "lead-sample" else "complete"
+    state["page_complete"] = state.get("scope", "full") == "full"
     state.pop("last_error", None)
     write_json(state_path, state)
+
+
+def inspect_sample_video(path):
+    from media import probe, check_video
+    from subprocess import CalledProcessError
+    tools_path = Path(__file__).resolve().parents[1] / ".tools/media-tools.json"
+    ffprobe = read_json(tools_path)["ffprobe"] if tools_path.is_file() else "ffprobe"
+    try:
+        metadata = probe(path, ffprobe)
+    except CalledProcessError as error:
+        raise ValueError(f"Sample ffprobe verification failed: {path}") from error
+    require(metadata.get("streams"), "Sample video stream missing")
+    stream = metadata["streams"][0]
+    check_video(metadata, 150, stream["width"], stream["height"])
+    return metadata
 
 
 def main():
@@ -261,13 +320,14 @@ def main():
     p.add_argument("--type", type=int, choices=range(1, 8), required=True)
     p = commands.add_parser("validate"); p.add_argument("job"); p.add_argument("--workspace")
     p = commands.add_parser("plan"); p.add_argument("job"); p.add_argument("--workspace", required=True); p.add_argument("--output", required=True)
+    p.add_argument("--scope", choices=["full", "lead-sample"], default="full"); p.add_argument("--reuse-sample")
     p = commands.add_parser("record"); p.add_argument("state"); p.add_argument("asset_id"); p.add_argument("file"); p.add_argument("qa_file")
     p = commands.add_parser("complete"); p.add_argument("state")
     args = parser.parse_args()
     try:
         if args.command == "ingest": ingest(args.prompt, args.output, args.job_id, args.brand, args.type)
         elif args.command == "validate": validate(read_json(args.job), args.workspace)
-        elif args.command == "plan": print(plan(args.job, args.workspace, args.output))
+        elif args.command == "plan": print(plan(args.job, args.workspace, args.output, args.scope, args.reuse_sample))
         elif args.command == "record": record(args.state, args.asset_id, args.file, args.qa_file)
         elif args.command == "complete": complete(args.state)
     except (ValueError, OSError, KeyError, TypeError) as error:

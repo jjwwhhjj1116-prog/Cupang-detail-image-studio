@@ -26,14 +26,22 @@ class ModelBindingTests(unittest.TestCase):
         self.job_path = self.workspace / 'job.json'
         studio.write_json(self.job_path, self.job)
         self.config = {'policy': 'fixed-pair', 'brands': ['와이홉', '유앤채'],
+                       'require_character_sheet_for_new_binding': True,
+                       'require_expression_sheet_for_new_binding': True,
                        'default_wearing_assignment': {'lead-1': 'female-f01', 'lead-2': 'male-m01'}, 'models': []}
         for model_id, gender, status in [('female-f01', 'female', 'locked_by_user'), ('male-m01', 'male', 'candidate')]:
             source = self.repo / f'.local/{model_id}.png'
             source.parent.mkdir(parents=True, exist_ok=True)
             source.write_bytes(model_id.encode())
+            sheet = source.with_name(model_id + '-sheet.png')
+            sheet.write_bytes((model_id + ' front side back expressions').encode())
+            expressions = source.with_name(model_id + '-expressions.png')
+            expressions.write_bytes((model_id + ' dreamy expressions hair variations').encode())
             self.config['models'].append({'id': model_id, 'gender': gender, 'revision': 1,
                 'fictional_adult': True, 'concept_age': 25, 'selection_status': status,
-                'reference_file': str(source.relative_to(self.repo)), 'sha256': studio.digest(source)})
+                'reference_file': str(source.relative_to(self.repo)), 'sha256': studio.digest(source),
+                'character_sheet': {'file': str(sheet.relative_to(self.repo)), 'sha256': studio.digest(sheet), 'revision': 1},
+                'expression_sheet': {'file': str(expressions.relative_to(self.repo)), 'sha256': studio.digest(expressions), 'revision': 1}})
         self.save_config()
 
     def save_config(self):
@@ -45,6 +53,8 @@ class ModelBindingTests(unittest.TestCase):
         self.assertEqual(binding['wearing_assignment'], {'lead-1': 'female-f01', 'lead-2': 'female-f01'})
         record = binding['profiles'][0]
         self.assertEqual(studio.digest(self.workspace / record['file']), self.config['models'][0]['sha256'])
+        self.assertEqual(studio.digest(self.workspace / record['character_sheet']['file']), self.config['models'][0]['character_sheet']['sha256'])
+        self.assertEqual(studio.digest(self.workspace / record['expression_sheet']['file']), self.config['models'][0]['expression_sheet']['sha256'])
         self.assertNotIn('model_binding', studio.read_json(self.job_path))
 
     def test_candidate_cannot_become_production_model_implicitly(self):
@@ -69,6 +79,47 @@ class ModelBindingTests(unittest.TestCase):
     def test_output_cannot_escape_job_workspace(self):
         with self.assertRaisesRegex(ValueError, 'inside'):
             models.bind(self.job_path, self.workspace, self.root / 'outside.json', self.repo, ['female-f01'])
+
+    def test_character_sheet_change_in_job_blocks_resuming_plan(self):
+        result = models.bind(self.job_path, self.workspace, self.workspace / 'female.json', self.repo, ['female-f01'])
+        state = studio.plan(result, self.workspace, self.workspace / 'plan', scope='lead-sample')
+        sheet = studio.read_json(result)['model_binding']['profiles'][0]['character_sheet']
+        (self.workspace / sheet['file']).write_bytes(b'different identity sheet')
+        with self.assertRaisesRegex(ValueError, 'character sheet changed'):
+            studio.load_state(state)
+
+    def test_missing_or_changed_character_sheet_cannot_bind_new_work(self):
+        record = self.config['models'][0]
+        (self.repo / record['character_sheet']['file']).write_bytes(b'changed sheet')
+        with self.assertRaisesRegex(ValueError, 'Character sheet changed'):
+            models.bind(self.job_path, self.workspace, self.workspace / 'female.json', self.repo, ['female-f01'])
+        del record['character_sheet']
+        self.save_config()
+        with self.assertRaisesRegex(ValueError, 'Restore the fixed character sheet'):
+            models.bind(self.job_path, self.workspace, self.workspace / 'female.json', self.repo, ['female-f01'])
+
+    def test_expression_reference_change_blocks_production_resume(self):
+        result = models.bind(self.job_path, self.workspace, self.workspace / 'female.json', self.repo, ['female-f01'])
+        state = studio.plan(result, self.workspace, self.workspace / 'plan', scope='lead-sample')
+        sheet = studio.read_json(result)['model_binding']['profiles'][0]['expression_sheet']
+        (self.workspace / sheet['file']).write_bytes(b'different dreamy face')
+        with self.assertRaisesRegex(ValueError, 'expression sheet changed'):
+            studio.load_state(state)
+
+    def test_fixed_model_artifact_requires_identity_review_evidence(self):
+        result = models.bind(self.job_path, self.workspace, self.workspace / 'female.json', self.repo, ['female-f01'])
+        job = studio.read_json(result)
+        artifact = self.workspace / 'result.png'
+        artifact.write_bytes(b'fixture image')
+        qa = {'artifact_sha256': studio.digest(artifact), 'checks': [
+            {'name': name, 'status': 'pass', 'evidence': 'Synthetic fixture review only'}
+            for name in studio.CHECKS['image']]}
+        studio.write_json(self.workspace / 'qa.json', qa)
+        with self.assertRaisesRegex(ValueError, 'Required QA checks missing'):
+            studio.verify_evidence(self.workspace, {'kind': 'image'}, 'result.png', 'qa.json', expected_job=job)
+        qa['checks'].append({'name': 'model_identity', 'status': 'pass', 'evidence': 'Synthetic identity review fixture only'})
+        studio.write_json(self.workspace / 'qa.json', qa)
+        studio.verify_evidence(self.workspace, {'kind': 'image'}, 'result.png', 'qa.json', expected_job=job)
 
 
 if __name__ == '__main__':

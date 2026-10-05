@@ -6,7 +6,7 @@
     "유앤채"
   ],
   "identity_review_required": true,
-  "reference_strategy": "Always attach the selected canonical portrait AND original product photos; never use a text-only face description.",
+  "reference_strategy": "Use the canonical portrait as face authority plus fixed angle/expression sheets and original product photos. Mood references guide expression and styling only; never replace or mix faces.",
   "default_wearing_assignment": {
     "lead-1": "female-f01",
     "lead-2": "male-m01"
@@ -35,8 +35,55 @@
         "clothing appropriate to campaign",
         "pose",
         "lighting",
-        "background"
-      ]
+        "background",
+        "hairstyle appropriate to product, season and campaign"
+      ],
+      "character_sheet": {
+        "revision": 1,
+        "file": ".local/models/female-f01/character-sheet-v1.png",
+        "sha256": "054d917f016e932488249c88947ecdd89baa63cc95d8167e695b72fe28c43af8",
+        "dimensions_px": [
+          1254,
+          1254
+        ],
+        "views": [
+          "front",
+          "left",
+          "right",
+          "back"
+        ],
+        "expressions": [
+          "soft_smile",
+          "laugh",
+          "focused",
+          "surprised",
+          "dreamy"
+        ],
+        "identity_authority": "canonical_portrait",
+        "reference_status": "fixed_derived_reference",
+        "generation_mode": "codex_builtin_image_tool"
+      },
+      "expression_sheet": {
+        "revision": 1,
+        "file": ".local/models/female-f01/dreamy-expressions-v1.png",
+        "sha256": "d4057e790e508cf13b38f4bc828fe57d571414a6acfcf5ed55b42af0eb58fc8c",
+        "dimensions_px": [
+          1374,
+          1145
+        ],
+        "expressions": [
+          "dreamy",
+          "chin_low",
+          "away_gaze",
+          "soft_moody",
+          "light_wind",
+          "quiet_gaze"
+        ],
+        "role": "expression_and_hairstyle_variants_only",
+        "identity_authority": "canonical_portrait",
+        "reference_status": "fixed_derived_reference",
+        "generation_mode": "codex_builtin_image_tool"
+      }
     },
     {
       "id": "male-m01",
@@ -60,17 +107,85 @@
         "clothing appropriate to campaign",
         "pose",
         "lighting",
-        "background"
+        "background",
+        "hairstyle appropriate to product, season and campaign"
       ],
       "adult": true,
-      "reference_origin": "user_selected_photo"
+      "reference_origin": "user_selected_photo",
+      "character_sheet": {
+        "revision": 1,
+        "file": ".local/models/male-m01/character-sheet-v1.png",
+        "sha256": "caa715cc00ec176cb5656394f91e885eb1584ec1598f12480d05df02c15125bc",
+        "dimensions_px": [
+          1254,
+          1254
+        ],
+        "views": [
+          "front",
+          "left",
+          "right",
+          "back"
+        ],
+        "expressions": [
+          "soft_smile",
+          "laugh",
+          "focused",
+          "surprised",
+          "dreamy"
+        ],
+        "identity_authority": "canonical_portrait",
+        "reference_status": "fixed_derived_reference",
+        "generation_mode": "codex_builtin_image_tool"
+      },
+      "expression_sheet": {
+        "revision": 1,
+        "file": ".local/models/male-m01/dreamy-expressions-v1.png",
+        "sha256": "afb2d017295bc80cf1e8115124bd410bc1e7fda268205f772e9daee5cd27c663",
+        "dimensions_px": [
+          1223,
+          1286
+        ],
+        "expressions": [
+          "dreamy",
+          "chin_low",
+          "away_gaze",
+          "soft_moody",
+          "light_wind",
+          "quiet_gaze"
+        ],
+        "role": "expression_and_hairstyle_variants_only",
+        "identity_authority": "canonical_portrait",
+        "reference_status": "fixed_derived_reference",
+        "generation_mode": "codex_builtin_image_tool"
+      }
     }
   ],
   "wardrobe_policy": {
     "fixed_outfit": false,
     "select_per_product_and_campaign": true,
     "direction": "현대적인 한국 패션 화보. 제품과 계절에 맞춰 스타일리시한 의상으로 변경.",
-    "continuity": "동일한 연속 장면 안에서는 의상 유지",
+    "continuity": "동일한 연속 장면 안에서는 의상·헤어스타일 유지",
     "identity": "의상·포즈·조명 변화와 얼굴 정체성 변경을 구분"
+  },
+  "require_character_sheet_for_new_binding": true,
+  "require_expression_sheet_for_new_binding": true,
+  "hairstyle_policy": {
+    "fixed_hairstyle": false,
+    "select_per_product_season_and_campaign": true,
+    "face_identity_unchanged": true,
+    "preserve_hair_color_unless_requested": true,
+    "continuity": "Maintain hairstyle within the same continuous scene",
+    "female_examples": [
+      "자연스럽게 풀기",
+      "로우 포니테일",
+      "반묶음",
+      "바람에 흐트러진 잔머리"
+    ],
+    "male_examples": [
+      "현대적인 프린지",
+      "부드럽게 옆으로 넘긴 머리",
+      "가벼운 젖은 질감",
+      "자연스러운 바람 연출"
+    ]
   }
 }

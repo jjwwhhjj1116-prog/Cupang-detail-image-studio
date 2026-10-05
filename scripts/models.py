@@ -21,6 +21,14 @@ def profiles(repo):
         source = relative_path(model["reference_file"], repo)
         require(source.is_file(), f"Missing canonical portrait for {model['id']}: restore the private model assets")
         require(digest(source) == model["sha256"], f"Canonical portrait changed for {model['id']}; create and select a new revision")
+        for field, label in (("character_sheet", "Character sheet"), ("expression_sheet", "Expression sheet")):
+            sheet = model.get(field)
+            if sheet is not None:
+                require(isinstance(sheet, dict) and type(sheet.get("revision")) is int and sheet["revision"] > 0,
+                        f"{label} requires a positive revision")
+                sheet_path = relative_path(sheet.get("file"), repo)
+                require(sheet_path.is_file() and digest(sheet_path) == sheet.get("sha256"),
+                        f"{label} changed or is missing for {model['id']}")
         result[model["id"]] = (model, source)
     return config, result
 
@@ -45,6 +53,17 @@ def bind(job_path, workspace, output, repo=None, model_ids=None):
         pending.append((source, target))
         records.append({"id": model_id, "gender": model["gender"], "file": relative,
                         "sha256": model["sha256"], "revision": model["revision"]})
+        for field, suffix in (("character_sheet", "sheet"), ("expression_sheet", "expressions")):
+            sheet = model.get(field)
+            require(sheet is not None or not config.get(f"require_{field}_for_new_binding"),
+                    f"Restore the fixed {field.replace('_', ' ')} for {model_id} before new production")
+            if sheet is not None:
+                sheet_relative = f"input/models/{model_id}-{suffix}-v{sheet['revision']}.png"
+                sheet_target = relative_path(sheet_relative, root)
+                require(not sheet_target.exists() or digest(sheet_target) == sheet["sha256"],
+                        f"A job {field.replace('_', ' ')} changed; preserve the old binding")
+                pending.append((relative_path(sheet["file"], repo), sheet_target))
+                records[-1][field] = {"file": sheet_relative, "sha256": sheet["sha256"], "revision": sheet["revision"]}
     assignment = config["default_wearing_assignment"] if len(ids) == 2 else {"lead-1": ids[0], "lead-2": ids[0]}
     updated = copy.deepcopy(job)
     updated["model_binding"] = {"policy": "fixed-pair", "profiles": records,

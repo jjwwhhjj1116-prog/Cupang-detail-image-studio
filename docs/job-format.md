@@ -19,6 +19,8 @@ python scripts/studio.py plan jobs/sample/job.json --workspace jobs/sample --out
 
 착용 컷의 `model_binding`은 선택한 F01/M01 프로필 1~2개, 각 참조 파일·SHA-256·버전, `wearing_assignment`와 정체성 검수 요구를 담는다. `scripts/models.py bind`로 생성하며 [고정 얼굴 규칙](fixed-models.md)을 따른다. 모델 참조나 배정이 바뀌면 기존 원본/QA 재사용이 거부된다.
 
+새 모델 binding은 각 프로필에 기준 캐릭터 시트 `character_sheet`와 몽환적 표정·헤어 변형 시트 `expression_sheet`의 실제 파일·버전·해시도 담는다. 파일 변경이나 누락은 작업 재개를 차단한다. 고정 모델이 연결된 작업의 이미지·Flow 원본·최종 영상 QA에는 `model_identity` 검사가 필요하다. 얼굴이 나오는 컷은 기준 얼굴과 비교하고 제품만 있는 컷은 사람이 없음을 실제 증빙에 기록한다. 스타일·표정 변화가 다른 얼굴로 바뀌는 것을 자동 통과시키지 않는다. 시트 없는 과거 작업은 소급 변경하지 않는다.
+
 실제 Remotion 경로는 [remotion-local.md](remotion-local.md)에 있다. FFmpeg로 검수한 무자막 입력에서 렌더하고 `.remotion.json`으로 출력·입력·폰트 해시를 기록한다. 출력은 원본 Flow 구간과 해시를 그대로 보존하며 Remotion 렌더 완료와 제품 시각 검수는 구분한다.
 
 `examples/demo-job.json`은 **가상의 형식 예제**입니다. 실제 제품 사진·원고·검증된 TYPE6 전체 템플릿을 제공하는 파일이 아닙니다. `input/demo-reference.png`를 동봉하지 않았으므로 형식 검사는 가능하지만 실제 제작 계획은 사진이 없으면 실패합니다.

@@ -104,6 +104,18 @@ def validate_model_binding(binding, workspace=None):
         reference = relative_path(profile.get("file"), workspace)
         if workspace is not None:
             require(reference.is_file() and digest(reference) == profile["sha256"], "Fixed model reference changed or is missing")
+        for field in ("character_sheet", "expression_sheet"):
+            if field not in profile:
+                continue
+            sheet = profile[field]
+            require(isinstance(sheet, dict) and type(sheet.get("revision")) is int and sheet["revision"] > 0,
+                    f"Fixed {field.replace('_', ' ')} requires a positive revision")
+            require(isinstance(sheet.get("sha256"), str) and re.fullmatch(r"[0-9a-f]{64}", sheet["sha256"]),
+                    f"Fixed {field.replace('_', ' ')} requires SHA-256")
+            sheet_path = relative_path(sheet.get("file"), workspace)
+            if workspace is not None:
+                require(sheet_path.is_file() and digest(sheet_path) == sheet["sha256"],
+                        f"Fixed {field.replace('_', ' ')} changed or is missing")
     assignment = binding.get("wearing_assignment")
     require(isinstance(assignment, dict) and set(assignment) == {"lead-1", "lead-2"}
             and all(value in profile_ids for value in assignment.values()), "Assign an included active fixed model to each lead")
@@ -619,6 +631,8 @@ def verify_evidence(workspace, item, file, qa_file, expected=None, expected_job=
         nonempty(check.get("name"), "QA check name")
         nonempty(check.get("evidence"), "QA check evidence")
     required = CHECKS[item["kind"]]
+    if expected_job and expected_job.get("model_binding") and item["kind"] in {"image", "video", "source-video"}:
+        required = required | {"model_identity"}
     captions = caption_mode(expected_job or state or {})
     if item["kind"] == "video" and captions == WITHOUT_CAPTIONS:
         required = (required - {"subtitle_timing"}) | {"caption_absence"}

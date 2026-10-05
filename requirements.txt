@@ -1,0 +1,2 @@
+# Used only to decode/verify exported detail-page images. Included in Codex's document runtime.
+Pillow>=10

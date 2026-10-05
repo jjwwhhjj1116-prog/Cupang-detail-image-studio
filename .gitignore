@@ -1,0 +1,13 @@
+.local/
+.tools/
+jobs/
+work/
+__pycache__/
+*.pyc
+*.fig
+.env
+.env.*
+!.env.example
+*.log
+*.zip
+

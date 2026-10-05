@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "example_only": true,
+  "job_id": "fictional-format-demo",
+  "brand": "와이홉",
+  "type": 6,
+  "source_prompt": "가상의 형식 예제입니다. 실제 제품 원고나 검증된 TYPE6 전체 템플릿이 아닙니다.",
+  "product": {
+    "photos": ["input/demo-reference.png"],
+    "confirmed_facts": []
+  },
+  "sections": [
+    {"id": "6-1", "kind": "video", "text": "가상 리드 메시지 1", "asset_id": "lead-1"},
+    {"id": "6-2", "kind": "video", "text": "가상 리드 메시지 2", "asset_id": "lead-2"},
+    {"id": "6-3", "kind": "text", "text": "와이홉"},
+    {"id": "6-7", "kind": "image", "text": "가상의 제품 이미지 슬롯", "asset_id": "hero", "image_prompt": "실제 제작 전 참고 사진을 제공해야 합니다. 사진의 제품 형태, 색상, 표면과 로고를 보존한 정면 이미지. 확인하지 않은 성능이나 문구를 추가하지 않습니다."}
+  ],
+  "leads": [
+    {
+      "id": "lead-1", "fps": 30,
+      "seconds": [
+        {"second": 1, "action": "정면", "caption": "정면을 확인해요", "image_prompt": "참고 제품의 정면. 가상 예제.", "video_prompt": "정면에서 아주 천천히 접근. 제품 형상 보존."},
+        {"second": 2, "action": "측면", "caption": "옆모습을 확인해요", "image_prompt": "참고 사진에서 확인 가능한 측면. 가상 예제.", "video_prompt": "측면을 고정하여 보여주기. 제품 형상 보존."},
+        {"second": 3, "action": "표면", "caption": "표면을 살펴봐요", "image_prompt": "참고 사진의 표면 확대. 가상 예제.", "video_prompt": "표면을 느리게 훑기. 새로운 재질을 만들지 않기."},
+        {"second": 4, "action": "디테일", "caption": "디테일을 확인해요", "image_prompt": "참고 사진에 존재하는 세부 구조. 가상 예제.", "video_prompt": "세부 구조 고정 샷. 구조를 변경하지 않기."},
+        {"second": 5, "action": "전체", "caption": "제품 전체를 담았어요", "image_prompt": "참고 제품 전체. 가상 예제.", "video_prompt": "제품 전체를 정지 상태로 보여주기."}
+      ]
+    },
+    {
+      "id": "lead-2", "fps": 30,
+      "seconds": [
+        {"second": 1, "action": "전체", "caption": "다른 각도에서 봐요", "image_prompt": "참고 사진의 전체 각도. 가상 예제.", "video_prompt": "참고 각도를 유지하고 천천히 접근."},
+        {"second": 2, "action": "위쪽", "caption": "위쪽을 확인해요", "image_prompt": "참고 사진에서 확인 가능한 윗면. 가상 예제.", "video_prompt": "윗면을 고정하여 보여주기."},
+        {"second": 3, "action": "측면", "caption": "옆면을 살펴봐요", "image_prompt": "참고 사진에 나온 측면. 가상 예제.", "video_prompt": "측면을 느리게 훑기."},
+        {"second": 4, "action": "세부", "caption": "가까이에서 확인해요", "image_prompt": "확인 가능한 세부를 확대. 가상 예제.", "video_prompt": "세부를 고정하여 보여주기."},
+        {"second": 5, "action": "정면", "caption": "와이홉", "image_prompt": "참고 제품 정면. 가상 예제.", "video_prompt": "제품 정면으로 마무리. 자막을 생성하지 않기."}
+      ]
+    }
+  ]
+}

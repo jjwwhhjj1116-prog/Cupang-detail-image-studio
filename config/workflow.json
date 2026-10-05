@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "mode": "codex_local_agent",
+  "handoff_after_manual_step": 4,
+  "manual_steps": ["하디 채팅 시작", "제품 사진 제공", "TYPE 선택", "완성 프롬프트 수령"],
+  "automatic_stages": ["intake", "fact_check", "template_binding", "shot_plan", "images", "flow_clips", "timed_edit", "figma_composition", "qa", "export"],
+  "brands": ["와이홉", "유앤채"],
+  "template_types": [1, 2, 3, 4, 5, 6, 7],
+  "authentication": {
+    "figma_primary": "existing_connected_plugin",
+    "browser_fallback": "reuse_existing_authenticated_session",
+    "force_login_each_job": false,
+    "sign_out_after_job": false,
+    "store_password_in_repository": false,
+    "on_expired_session": "attempt_normal_existing_sign_in_then_request_user_authentication_if_required"
+  },
+  "image": {
+    "requested_model": "Image 2.5",
+    "requested_quality": "high",
+    "preferred_execution": "codex_subscription",
+    "allow_unverified_model_substitution": false,
+    "allow_automatic_paid_api_fallback": false,
+    "preserve_product_identity": true,
+    "render_copy_as_editable_figma_text": true
+  },
+  "video": {
+    "provider": "Google Flow",
+    "lead_count": 2,
+    "lead_duration_seconds": 5,
+    "fps": 30,
+    "frames_per_segment": 30,
+    "total_frames_per_lead": 150,
+    "subtitle_timing": "same_as_one_second_segment",
+    "edit_generated_footage_to_exact_timing": true,
+    "audio_policy": "preserve_sources_no_added_music_or_voice_without_instruction",
+    "auto_purchase_credits": false
+  },
+  "figma": {
+    "template_ownership_strategy": "import_received_fig_as_owned_copy",
+    "change_received_source_sharing": false,
+    "preserve_master": true,
+    "duplicate_per_product": true,
+    "verify_live_nodes_before_write": true,
+    "export_width_from_template": true,
+    "source_template_width_px": 780,
+    "video_fill_support": "verify_at_runtime",
+    "never_count_static_poster_as_playable_video": true
+  },
+  "recovery": {"retry_confirmed_failed_generation_max": 2, "resume_verified_assets": true, "reconcile_unknown_generation_outcome_first": true},
+  "delivery": ["editable_figma_link", "ordered_detail_images", "lead-1.mp4", "lead-2.mp4", "timed_subtitles", "preview.html", "qa.json", "delivery-manifest.json"],
+  "completion_requires": ["all_required_assets_exist", "product_identity_review", "template_content_review", "video_timing_verified", "subtitle_review", "figma_render_review", "export_verified"],
+  "coupang_publish": false
+}

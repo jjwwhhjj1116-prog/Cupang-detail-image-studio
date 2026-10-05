@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "brands": {
+    "와이홉": {"display_name": "와이홉", "logo": null, "brand_colors": null, "brand_story": null},
+    "유앤채": {"display_name": "유앤채", "logo": null, "brand_colors": null, "brand_story": null}
+  },
+  "policy": "Use supplied brand assets when available. Otherwise render the exact brand name as editable text using the selected template style. Never invent a logo, certification, company history or performance claim."
+}

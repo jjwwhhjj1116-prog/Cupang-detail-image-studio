@@ -1,0 +1,2702 @@
+{
+  "schema_version": 1,
+  "source_filename": "백억캠프리워드_상세페이지4.0_삭제금지NO.fig",
+  "source_sha256": "ad3ca0887a920a4781b97cde85fd39f1cab44100d187f9b4e31fa571310cab71",
+  "source_size_bytes": 63732661,
+  "source_preserved": true,
+  "canvas_version": 106,
+  "decoder": "schema-driven full read; 3817537/3817537 bytes consumed",
+  "node_count": 3295,
+  "pages": [
+    {
+      "offline_node_id": "0:2",
+      "name": "Internal Only Canvas",
+      "internal": true
+    },
+    {
+      "offline_node_id": "8:295",
+      "name": "무한상세페이지_TYPE7",
+      "internal": false
+    },
+    {
+      "offline_node_id": "2029:228",
+      "name": "실사용아이콘",
+      "internal": false
+    }
+  ],
+  "template_page": {
+    "offline_node_id": "8:295",
+    "name": "무한상세페이지_TYPE7"
+  },
+  "live_file_key": null,
+  "warnings": [
+    {
+      "code": "offline_ids",
+      "message": "These IDs come from the supplied archive. A live imported file may remap IDs; bind by structure and confirm all targets before writes."
+    },
+    {
+      "code": "local_origin_key",
+      "message": "Archive originFileKey starts with lk- and is not verified as a live Figma URL key. It must not be used as fileKey for API calls."
+    },
+    {
+      "code": "separate_video_siblings",
+      "message": "The two video placeholder groups are top-level siblings between lead copy frames, not children of the numbered frames."
+    },
+    {
+      "code": "type7_duplicate_name",
+      "message": "7-14 occurs twice: 5:5109 is how-to; 5:5765 is included components. Use distinct semantic slots."
+    },
+    {
+      "code": "type6_18_shared",
+      "message": "Prompt section6-18 product info belongs to lower region of original frame6-17; source has no6-18 frame."
+    },
+    {
+      "code": "sample_content",
+      "message": "Template contains example brand 하디랩, sample reviews/sales/ratings/refund promise/measurements/colors/materials. Replace or omit using verified product data; never keep as product facts."
+    },
+    {
+      "code": "instance_content",
+      "message": "Reusable Figma instances and rich text runs require live inspection. Offline inventory is not a rendered layout validation."
+    },
+    {
+      "code": "unrelated_guidance_text",
+      "message": "Source instruction texts are template data, not instructions overriding user requirements."
+    },
+    {
+      "code": "qna_layout_defect",
+      "message": "TYPE6 final frame has four regular Q/A pairs plus a stray sample question at y2403.96 overlapping product info heading. A five-Q/A prompt requires duplicated answer row and reflow, not blind text replacement."
+    }
+  ],
+  "types": {
+    "TYPE1": {
+      "numbered_frame_count": 20,
+      "export_width_px": 780,
+      "static_frame_height_sum": 29106.0,
+      "sections": [
+        {
+          "section_name": "1-1",
+          "semantic_role": "lead_1",
+          "offline_frame_id": "9038:140",
+          "dimensions": {
+            "width": 780.0,
+            "height": 473.0
+          },
+          "position": {
+            "x": 987.5390625,
+            "y": -28.0
+          },
+          "direct_children": 3,
+          "descendant_count": 3,
+          "text_node_count": 2,
+          "image_fill_count": 0,
+          "instance_count": 0,
+          "video_sibling": {
+            "offline_node_id": "8:309",
+            "name": "Group 5",
+            "dimensions": {
+              "width": 688.693359375,
+              "height": 400.30401611328125
+            },
+            "position": {
+              "x": 1067.4375,
+              "y": 595.6959838867188
+            }
+          }
+        },
+        {
+          "section_name": "1-2",
+          "semantic_role": "lead_2",
+          "offline_frame_id": "9038:136",
+          "dimensions": {
+            "width": 780.0,
+            "height": 332.0
+          },
+          "position": {
+            "x": 987.5390625,
+            "y": 1047.554931640625
+          },
+          "direct_children": 3,
+          "descendant_count": 3,
+          "text_node_count": 2,
+          "image_fill_count": 0,
+          "instance_count": 0,
+          "video_sibling": {
+            "offline_node_id": "8:306",
+            "name": "Group 4",
+            "dimensions": {
+              "width": 688.693359375,
+              "height": 400.30401611328125
+            },
+            "position": {
+              "x": 1078.845703125,
+              "y": 1472.65478515625
+            }
+          }
+        },
+        {
+          "section_name": "1-3",
+          "semantic_role": "official_brand",
+          "offline_frame_id": "8:312",
+          "dimensions": {
+            "width": 780.0,
+            "height": 290.0
+          },
+          "position": {
+            "x": 1001.0,
+            "y": 1973.0
+          },
+          "direct_children": 7,
+          "descendant_count": 7,
+          "text_node_count": 6,
+          "image_fill_count": 1,
+          "instance_count": 0
+        },
+        {
+          "section_name": "1-4",
+          "semantic_role": "brand_story",
+          "offline_frame_id": "5:3387",
+          "dimensions": {
+            "width": 780.0,
+            "height": 861.0
+          },
+          "position": {
+            "x": 1001.0,
+            "y": 2573.0
+          },
+          "direct_children": 5,
+          "descendant_count": 7,
+          "text_node_count": 3,
+          "image_fill_count": 3,
+          "instance_count": 0
+        },
+        {
+          "section_name": "1-5",
+          "semantic_role": "gift",
+          "offline_frame_id": "5:3462",
+          "dimensions": {
+            "width": 780.0,
+            "height": 678.0
+          },
+          "position": {
+            "x": 1001.0,
+            "y": 3649.0
+          },
+          "direct_children": 6,
+          "descendant_count": 9,
+          "text_node_count": 2,
+          "image_fill_count": 3,
+          "instance_count": 1
+        },
+        {
+          "section_name": "1-6",
+          "semantic_role": "recommendation",
+          "offline_frame_id": "5:4016",
+          "dimensions": {
+            "width": 780.0,
+            "height": 792.0
+          },
+          "position": {
+            "x": 1001.0,
+            "y": 4565.0
+          },
+          "direct_children": 17,
+          "descendant_count": 17,
+          "text_node_count": 6,
+          "image_fill_count": 6,
+          "instance_count": 0
+        },
+        {
+          "section_name": "1-7",
+          "semantic_role": "upgrade",
+          "offline_frame_id": "5:3550",
+          "dimensions": {
+            "width": 780.0,
+            "height": 1629.0
+          },
+          "position": {
+            "x": 1001.0,
+            "y": 5560.0
+          },
+          "direct_children": 20,
+          "descendant_count": 26,
+          "text_node_count": 8,
+          "image_fill_count": 5,
+          "instance_count": 0
+        },
+        {
+          "section_name": "1-8",
+          "semantic_role": "landing",
+          "offline_frame_id": "5:4165",
+          "dimensions": {
+            "width": 780.0,
+            "height": 1754.0
+          },
+          "position": {
+            "x": 974.0,
+            "y": 7841.0
+          },
+          "direct_children": 22,
+          "descendant_count": 22,
+          "text_node_count": 10,
+          "image_fill_count": 6,
+          "instance_count": 0
+        },
+        {
+          "section_name": "1-9",
+          "semantic_role": "reviews",
+          "offline_frame_id": "5:3703",
+          "dimensions": {
+            "width": 780.0,
+            "height": 2000.0
+          },
+          "position": {
+            "x": 976.0,
+            "y": 9813.0
+          },
+          "direct_children": 37,
+          "descendant_count": 37,
+          "text_node_count": 21,
+          "image_fill_count": 7,
+          "instance_count": 0
+        },
+        {
+          "section_name": "1-10",
+          "semantic_role": "point_1",
+          "offline_frame_id": "9038:152",
+          "dimensions": {
+            "width": 780.0,
+            "height": 1212.0
+          },
+          "position": {
+            "x": 976.0,
+            "y": 12108.0
+          },
+          "direct_children": 5,
+          "descendant_count": 5,
+          "text_node_count": 2,
+          "image_fill_count": 1,
+          "instance_count": 1
+        },
+        {
+          "section_name": "1-11",
+          "semantic_role": "point_2",
+          "offline_frame_id": "5:4354",
+          "dimensions": {
+            "width": 780.0,
+            "height": 1212.0
+          },
+          "position": {
+            "x": 1001.0,
+            "y": 13830.0
+          },
+          "direct_children": 4,
+          "descendant_count": 4,
+          "text_node_count": 2,
+          "image_fill_count": 1,
+          "instance_count": 1
+        },
+        {
+          "section_name": "1-12",
+          "semantic_role": "use_cases",
+          "offline_frame_id": "5:4283",
+          "dimensions": {
+            "width": 780.0,
+            "height": 3801.0
+          },
+          "position": {
+            "x": 1001.0,
+            "y": 16160.0
+          },
+          "direct_children": 22,
+          "descendant_count": 22,
+          "text_node_count": 10,
+          "image_fill_count": 5,
+          "instance_count": 1
+        },
+        {
+          "section_name": "1-13",
+          "semantic_role": "point_3",
+          "offline_frame_id": "5:4348",
+          "dimensions": {
+            "width": 780.0,
+            "height": 1212.0
+          },
+          "position": {
+            "x": 1001.0,
+            "y": 20096.0
+          },
+          "direct_children": 5,
+          "descendant_count": 5,
+          "text_node_count": 2,
+          "image_fill_count": 1,
+          "instance_count": 1
+        },
+        {
+          "section_name": "1-14",
+          "semantic_role": "emotional_copy",
+          "offline_frame_id": "5:5803",
+          "dimensions": {
+            "width": 780.0,
+            "height": 697.0
+          },
+          "position": {
+            "x": 1001.0,
+            "y": 21531.0
+          },
+          "direct_children": 3,
+          "descendant_count": 3,
+          "text_node_count": 2,
+          "image_fill_count": 1,
+          "instance_count": 0
+        },
+        {
+          "section_name": "1-15",
+          "semantic_role": "how_to",
+          "offline_frame_id": "5:4359",
+          "dimensions": {
+            "width": 780.0,
+            "height": 1288.0
+          },
+          "position": {
+            "x": 1001.0,
+            "y": 22492.0
+          },
+          "direct_children": 14,
+          "descendant_count": 14,
+          "text_node_count": 6,
+          "image_fill_count": 4,
+          "instance_count": 1
+        },
+        {
+          "section_name": "1-16",
+          "semantic_role": "point_5",
+          "offline_frame_id": "5:4372",
+          "dimensions": {
+            "width": 780.0,
+            "height": 1474.0
+          },
+          "position": {
+            "x": 1001.0,
+            "y": 24007.0
+          },
+          "direct_children": 6,
+          "descendant_count": 6,
+          "text_node_count": 2,
+          "image_fill_count": 1,
+          "instance_count": 2
+        },
+        {
+          "section_name": "1-17",
+          "semantic_role": "brand_mood",
+          "offline_frame_id": "5:6297",
+          "dimensions": {
+            "width": 780.0,
+            "height": 551.0
+          },
+          "position": {
+            "x": 1023.0,
+            "y": 25628.5
+          },
+          "direct_children": 5,
+          "descendant_count": 5,
+          "text_node_count": 2,
+          "image_fill_count": 1,
+          "instance_count": 0
+        },
+        {
+          "section_name": "1-18",
+          "semantic_role": "detail_views",
+          "offline_frame_id": "5:5638",
+          "dimensions": {
+            "width": 780.0,
+            "height": 3035.0
+          },
+          "position": {
+            "x": 1001.0,
+            "y": 26327.0
+          },
+          "direct_children": 6,
+          "descendant_count": 6,
+          "text_node_count": 0,
+          "image_fill_count": 4,
+          "instance_count": 1
+        },
+        {
+          "section_name": "1-19",
+          "semantic_role": "colors_size",
+          "offline_frame_id": "5:5646",
+          "dimensions": {
+            "width": 780.0,
+            "height": 2009.0
+          },
+          "position": {
+            "x": 1001.0,
+            "y": 29663.0
+          },
+          "direct_children": 13,
+          "descendant_count": 17,
+          "text_node_count": 7,
+          "image_fill_count": 5,
+          "instance_count": 0
+        },
+        {
+          "section_name": "1-20",
+          "semantic_role": "qna_product_info",
+          "offline_frame_id": "5:6313",
+          "dimensions": {
+            "width": 780.0,
+            "height": 3806.0
+          },
+          "position": {
+            "x": 1001.0,
+            "y": 31898.0
+          },
+          "direct_children": 51,
+          "descendant_count": 51,
+          "text_node_count": 30,
+          "image_fill_count": 0,
+          "instance_count": 0
+        }
+      ]
+    },
+    "TYPE2": {
+      "numbered_frame_count": 19,
+      "export_width_px": 780,
+      "static_frame_height_sum": 29785.0,
+      "sections": [
+        {
+          "section_name": "2-1",
+          "semantic_role": "lead_1",
+          "offline_frame_id": "5:1909",
+          "dimensions": {
+            "width": 780.0,
+            "height": 473.0
+          },
+          "position": {
+            "x": 3615.0,
+            "y": 115.0
+          },
+          "direct_children": 4,
+          "descendant_count": 4,
+          "text_node_count": 3,
+          "image_fill_count": 0,
+          "instance_count": 0,
+          "video_sibling": {
+            "offline_node_id": "5:1920",
+            "name": "Group 7",
+            "dimensions": {
+              "width": 688.693359375,
+              "height": 400.30401611328125
+            },
+            "position": {
+              "x": 3708.4375,
+              "y": 647.2509765625
+            }
+          }
+        },
+        {
+          "section_name": "2-2",
+          "semantic_role": "lead_2",
+          "offline_frame_id": "5:1913",
+          "dimensions": {
+            "width": 780.0,
+            "height": 332.0
+          },
+          "position": {
+            "x": 3620.95703125,
+            "y": 1132.0
+          },
+          "direct_children": 3,
+          "descendant_count": 3,
+          "text_node_count": 2,
+          "image_fill_count": 0,
+          "instance_count": 0,
+          "video_sibling": {
+            "offline_node_id": "5:1917",
+            "name": "Group 6",
+            "dimensions": {
+              "width": 688.693359375,
+              "height": 400.30401611328125
+            },
+            "position": {
+              "x": 3719.845703125,
+              "y": 1580.65478515625
+            }
+          }
+        },
+        {
+          "section_name": "2-3",
+          "semantic_role": "official_brand",
+          "offline_frame_id": "5:1923",
+          "dimensions": {
+            "width": 780.0,
+            "height": 290.0
+          },
+          "position": {
+            "x": 3642.0,
+            "y": 2081.0
+          },
+          "direct_children": 7,
+          "descendant_count": 7,
+          "text_node_count": 6,
+          "image_fill_count": 1,
+          "instance_count": 0
+        },
+        {
+          "section_name": "2-4",
+          "semantic_role": "brand_story",
+          "offline_frame_id": "5:3408",
+          "dimensions": {
+            "width": 780.0,
+            "height": 861.0
+          },
+          "position": {
+            "x": 3642.0,
+            "y": 2579.5
+          },
+          "direct_children": 6,
+          "descendant_count": 8,
+          "text_node_count": 4,
+          "image_fill_count": 3,
+          "instance_count": 0
+        },
+        {
+          "section_name": "2-5",
+          "semantic_role": "gift",
+          "offline_frame_id": "5:3473",
+          "dimensions": {
+            "width": 780.0,
+            "height": 678.0
+          },
+          "position": {
+            "x": 3642.0,
+            "y": 3649.0
+          },
+          "direct_children": 6,
+          "descendant_count": 9,
+          "text_node_count": 2,
+          "image_fill_count": 3,
+          "instance_count": 1
+        },
+        {
+          "section_name": "2-6",
+          "semantic_role": "problem",
+          "offline_frame_id": "5:3577",
+          "dimensions": {
+            "width": 780.0,
+            "height": 2269.0
+          },
+          "position": {
+            "x": 3629.0,
+            "y": 4529.0
+          },
+          "direct_children": 15,
+          "descendant_count": 15,
+          "text_node_count": 6,
+          "image_fill_count": 4,
+          "instance_count": 0
+        },
+        {
+          "section_name": "2-7",
+          "semantic_role": "upgrade",
+          "offline_frame_id": "5:3904",
+          "dimensions": {
+            "width": 780.0,
+            "height": 2432.0
+          },
+          "position": {
+            "x": 3629.0,
+            "y": 6946.0
+          },
+          "direct_children": 26,
+          "descendant_count": 26,
+          "text_node_count": 10,
+          "image_fill_count": 4,
+          "instance_count": 1
+        },
+        {
+          "section_name": "2-8",
+          "semantic_role": "landing",
+          "offline_frame_id": "5:4115",
+          "dimensions": {
+            "width": 780.0,
+            "height": 1353.0
+          },
+          "position": {
+            "x": 3629.0,
+            "y": 9881.0
+          },
+          "direct_children": 20,
+          "descendant_count": 20,
+          "text_node_count": 7,
+          "image_fill_count": 8,
+          "instance_count": 1
+        },
+        {
+          "section_name": "2-9",
+          "semantic_role": "point_1",
+          "offline_frame_id": "5:4504",
+          "dimensions": {
+            "width": 780.0,
+            "height": 1212.0
+          },
+          "position": {
+            "x": 3629.17578125,
+            "y": 11347.0
+          },
+          "direct_children": 5,
+          "descendant_count": 5,
+          "text_node_count": 2,
+          "image_fill_count": 1,
+          "instance_count": 1
+        },
+        {
+          "section_name": "2-10",
+          "semantic_role": "point_2",
+          "offline_frame_id": "5:4516",
+          "dimensions": {
+            "width": 780.0,
+            "height": 1212.0
+          },
+          "position": {
+            "x": 3629.0,
+            "y": 13154.5
+          },
+          "direct_children": 4,
+          "descendant_count": 4,
+          "text_node_count": 2,
+          "image_fill_count": 1,
+          "instance_count": 1
+        },
+        {
+          "section_name": "2-11",
+          "semantic_role": "use_cases",
+          "offline_frame_id": "2029:133",
+          "dimensions": {
+            "width": 780.0,
+            "height": 3801.0
+          },
+          "position": {
+            "x": 3629.0,
+            "y": 14532.0
+          },
+          "direct_children": 21,
+          "descendant_count": 21,
+          "text_node_count": 9,
+          "image_fill_count": 5,
+          "instance_count": 1
+        },
+        {
+          "section_name": "2-12",
+          "semantic_role": "point_3",
+          "offline_frame_id": "5:4510",
+          "dimensions": {
+            "width": 780.0,
+            "height": 1212.0
+          },
+          "position": {
+            "x": 3629.0,
+            "y": 18568.0
+          },
+          "direct_children": 5,
+          "descendant_count": 5,
+          "text_node_count": 2,
+          "image_fill_count": 1,
+          "instance_count": 1
+        },
+        {
+          "section_name": "2-13",
+          "semantic_role": "how_to",
+          "offline_frame_id": "5:4521",
+          "dimensions": {
+            "width": 780.0,
+            "height": 1288.0
+          },
+          "position": {
+            "x": 3629.0,
+            "y": 20006.0
+          },
+          "direct_children": 12,
+          "descendant_count": 12,
+          "text_node_count": 6,
+          "image_fill_count": 4,
+          "instance_count": 1
+        },
+        {
+          "section_name": "2-14",
+          "semantic_role": "emotional_copy",
+          "offline_frame_id": "5:5807",
+          "dimensions": {
+            "width": 780.0,
+            "height": 697.0
+          },
+          "position": {
+            "x": 3629.0,
+            "y": 21629.0
+          },
+          "direct_children": 3,
+          "descendant_count": 3,
+          "text_node_count": 2,
+          "image_fill_count": 1,
+          "instance_count": 0
+        },
+        {
+          "section_name": "2-15",
+          "semantic_role": "point_5",
+          "offline_frame_id": "5:4534",
+          "dimensions": {
+            "width": 780.0,
+            "height": 1474.0
+          },
+          "position": {
+            "x": 3629.0,
+            "y": 22484.0
+          },
+          "direct_children": 6,
+          "descendant_count": 6,
+          "text_node_count": 2,
+          "image_fill_count": 1,
+          "instance_count": 2
+        },
+        {
+          "section_name": "2-16",
+          "semantic_role": "point_size",
+          "offline_frame_id": "5:4541",
+          "dimensions": {
+            "width": 780.0,
+            "height": 1351.0
+          },
+          "position": {
+            "x": 3629.0,
+            "y": 24097.0
+          },
+          "direct_children": 67,
+          "descendant_count": 67,
+          "text_node_count": 34,
+          "image_fill_count": 0,
+          "instance_count": 1
+        },
+        {
+          "section_name": "2-17",
+          "semantic_role": "detail_views",
+          "offline_frame_id": "5:5904",
+          "dimensions": {
+            "width": 780.0,
+            "height": 3035.0
+          },
+          "position": {
+            "x": 3629.0,
+            "y": 25708.0
+          },
+          "direct_children": 6,
+          "descendant_count": 6,
+          "text_node_count": 0,
+          "image_fill_count": 4,
+          "instance_count": 1
+        },
+        {
+          "section_name": "2-18",
+          "semantic_role": "colors_size",
+          "offline_frame_id": "5:5886",
+          "dimensions": {
+            "width": 780.0,
+            "height": 2009.0
+          },
+          "position": {
+            "x": 3629.0,
+            "y": 29044.0
+          },
+          "direct_children": 13,
+          "descendant_count": 17,
+          "text_node_count": 7,
+          "image_fill_count": 5,
+          "instance_count": 0
+        },
+        {
+          "section_name": "2-19",
+          "semantic_role": "qna_product_info",
+          "offline_frame_id": "5:6367",
+          "dimensions": {
+            "width": 780.0,
+            "height": 3806.0
+          },
+          "position": {
+            "x": 3629.0,
+            "y": 31281.0
+          },
+          "direct_children": 51,
+          "descendant_count": 51,
+          "text_node_count": 30,
+          "image_fill_count": 0,
+          "instance_count": 0
+        }
+      ]
+    },
+    "TYPE3": {
+      "numbered_frame_count": 19,
+      "export_width_px": 780,
+      "static_frame_height_sum": 29439.0,
+      "sections": [
+        {
+          "section_name": "3-1",
+          "semantic_role": "lead_1",
+          "offline_frame_id": "5:1942",
+          "dimensions": {
+            "width": 780.0,
+            "height": 479.0
+          },
+          "position": {
+            "x": 6449.0,
+            "y": 117.0
+          },
+          "direct_children": 3,
+          "descendant_count": 3,
+          "text_node_count": 2,
+          "image_fill_count": 0,
+          "instance_count": 0,
+          "video_sibling": {
+            "offline_node_id": "5:1953",
+            "name": "Group 9",
+            "dimensions": {
+              "width": 624.9183349609375,
+              "height": 406.08349609375
+            },
+            "position": {
+              "x": 6533.5341796875,
+              "y": 656.5958862304688
+            }
+          }
+        },
+        {
+          "section_name": "3-2",
+          "semantic_role": "lead_2",
+          "offline_frame_id": "5:1946",
+          "dimensions": {
+            "width": 780.0,
+            "height": 337.0
+          },
+          "position": {
+            "x": 6454.0,
+            "y": 1148.0
+          },
+          "direct_children": 3,
+          "descendant_count": 3,
+          "text_node_count": 2,
+          "image_fill_count": 0,
+          "instance_count": 0,
+          "video_sibling": {
+            "offline_node_id": "5:1950",
+            "name": "Group 8",
+            "dimensions": {
+              "width": 624.9183349609375,
+              "height": 406.08355712890625
+            },
+            "position": {
+              "x": 6543.8857421875,
+              "y": 1603.4759521484375
+            }
+          }
+        },
+        {
+          "section_name": "3-3",
+          "semantic_role": "official_brand",
+          "offline_frame_id": "5:1956",
+          "dimensions": {
+            "width": 780.0,
+            "height": 294.0
+          },
+          "position": {
+            "x": 6473.0,
+            "y": 2111.0
+          },
+          "direct_children": 7,
+          "descendant_count": 7,
+          "text_node_count": 6,
+          "image_fill_count": 1,
+          "instance_count": 0
+        },
+        {
+          "section_name": "3-4",
+          "semantic_role": "brand_story",
+          "offline_frame_id": "5:3453",
+          "dimensions": {
+            "width": 780.0,
+            "height": 874.0
+          },
+          "position": {
+            "x": 6451.0,
+            "y": 2610.0
+          },
+          "direct_children": 6,
+          "descendant_count": 8,
+          "text_node_count": 4,
+          "image_fill_count": 3,
+          "instance_count": 0
+        },
+        {
+          "section_name": "3-5",
+          "semantic_role": "gift",
+          "offline_frame_id": "5:3484",
+          "dimensions": {
+            "width": 780.0,
+            "height": 687.0
+          },
+          "position": {
+            "x": 6473.0,
+            "y": 3702.0
+          },
+          "direct_children": 6,
+          "descendant_count": 9,
+          "text_node_count": 2,
+          "image_fill_count": 3,
+          "instance_count": 1
+        },
+        {
+          "section_name": "3-6",
+          "semantic_role": "upgrade",
+          "offline_frame_id": "5:3932",
+          "dimensions": {
+            "width": 780.0,
+            "height": 2467.0
+          },
+          "position": {
+            "x": 6436.0,
+            "y": 4631.0
+          },
+          "direct_children": 26,
+          "descendant_count": 26,
+          "text_node_count": 10,
+          "image_fill_count": 4,
+          "instance_count": 1
+        },
+        {
+          "section_name": "3-7",
+          "semantic_role": "problem",
+          "offline_frame_id": "5:3621",
+          "dimensions": {
+            "width": 780.0,
+            "height": 2302.0
+          },
+          "position": {
+            "x": 6436.0,
+            "y": 7713.0
+          },
+          "direct_children": 14,
+          "descendant_count": 14,
+          "text_node_count": 6,
+          "image_fill_count": 3,
+          "instance_count": 0
+        },
+        {
+          "section_name": "3-8",
+          "semantic_role": "landing",
+          "offline_frame_id": "5:4083",
+          "dimensions": {
+            "width": 780.0,
+            "height": 1201.0
+          },
+          "position": {
+            "x": 6436.0,
+            "y": 10291.0
+          },
+          "direct_children": 29,
+          "descendant_count": 29,
+          "text_node_count": 10,
+          "image_fill_count": 10,
+          "instance_count": 1
+        },
+        {
+          "section_name": "3-9",
+          "semantic_role": "use_cases",
+          "offline_frame_id": "2029:156",
+          "dimensions": {
+            "width": 780.0,
+            "height": 3856.0
+          },
+          "position": {
+            "x": 6436.0,
+            "y": 11648.0
+          },
+          "direct_children": 21,
+          "descendant_count": 21,
+          "text_node_count": 9,
+          "image_fill_count": 5,
+          "instance_count": 1
+        },
+        {
+          "section_name": "3-10",
+          "semantic_role": "point_1",
+          "offline_frame_id": "5:4635",
+          "dimensions": {
+            "width": 780.0,
+            "height": 1230.0
+          },
+          "position": {
+            "x": 6436.0,
+            "y": 15817.5
+          },
+          "direct_children": 5,
+          "descendant_count": 5,
+          "text_node_count": 2,
+          "image_fill_count": 1,
+          "instance_count": 1
+        },
+        {
+          "section_name": "3-11",
+          "semantic_role": "point_2",
+          "offline_frame_id": "5:4647",
+          "dimensions": {
+            "width": 780.0,
+            "height": 1229.0
+          },
+          "position": {
+            "x": 6436.0,
+            "y": 17262.0
+          },
+          "direct_children": 4,
+          "descendant_count": 4,
+          "text_node_count": 2,
+          "image_fill_count": 1,
+          "instance_count": 1
+        },
+        {
+          "section_name": "3-12",
+          "semantic_role": "adhesion_surfaces",
+          "offline_frame_id": "5:5791",
+          "dimensions": {
+            "width": 780.0,
+            "height": 935.0
+          },
+          "position": {
+            "x": 6436.0,
+            "y": 18804.5
+          },
+          "direct_children": 11,
+          "descendant_count": 11,
+          "text_node_count": 6,
+          "image_fill_count": 5,
+          "instance_count": 0
+        },
+        {
+          "section_name": "3-13",
+          "semantic_role": "point_3",
+          "offline_frame_id": "5:4641",
+          "dimensions": {
+            "width": 780.0,
+            "height": 1229.0
+          },
+          "position": {
+            "x": 6436.0,
+            "y": 20160.5
+          },
+          "direct_children": 5,
+          "descendant_count": 5,
+          "text_node_count": 2,
+          "image_fill_count": 1,
+          "instance_count": 1
+        },
+        {
+          "section_name": "3-14",
+          "semantic_role": "emotional_copy",
+          "offline_frame_id": "5:5811",
+          "dimensions": {
+            "width": 780.0,
+            "height": 707.0
+          },
+          "position": {
+            "x": 6436.0,
+            "y": 21645.0
+          },
+          "direct_children": 3,
+          "descendant_count": 3,
+          "text_node_count": 2,
+          "image_fill_count": 1,
+          "instance_count": 0
+        },
+        {
+          "section_name": "3-15",
+          "semantic_role": "how_to",
+          "offline_frame_id": "5:4652",
+          "dimensions": {
+            "width": 780.0,
+            "height": 1288.0
+          },
+          "position": {
+            "x": 6436.0,
+            "y": 22550.0
+          },
+          "direct_children": 12,
+          "descendant_count": 12,
+          "text_node_count": 6,
+          "image_fill_count": 4,
+          "instance_count": 1
+        },
+        {
+          "section_name": "3-16",
+          "semantic_role": "point_5",
+          "offline_frame_id": "5:4665",
+          "dimensions": {
+            "width": 780.0,
+            "height": 1474.0
+          },
+          "position": {
+            "x": 6436.0,
+            "y": 24035.5
+          },
+          "direct_children": 6,
+          "descendant_count": 6,
+          "text_node_count": 2,
+          "image_fill_count": 1,
+          "instance_count": 2
+        },
+        {
+          "section_name": "3-17",
+          "semantic_role": "detail_views",
+          "offline_frame_id": "5:5975",
+          "dimensions": {
+            "width": 780.0,
+            "height": 3035.0
+          },
+          "position": {
+            "x": 6436.0,
+            "y": 25765.0
+          },
+          "direct_children": 6,
+          "descendant_count": 6,
+          "text_node_count": 0,
+          "image_fill_count": 4,
+          "instance_count": 1
+        },
+        {
+          "section_name": "3-18",
+          "semantic_role": "colors_size",
+          "offline_frame_id": "5:5957",
+          "dimensions": {
+            "width": 780.0,
+            "height": 2009.0
+          },
+          "position": {
+            "x": 6436.0,
+            "y": 29044.0
+          },
+          "direct_children": 13,
+          "descendant_count": 17,
+          "text_node_count": 7,
+          "image_fill_count": 5,
+          "instance_count": 0
+        },
+        {
+          "section_name": "3-19",
+          "semantic_role": "qna_product_info",
+          "offline_frame_id": "5:6420",
+          "dimensions": {
+            "width": 780.0,
+            "height": 3806.0
+          },
+          "position": {
+            "x": 6436.0,
+            "y": 31399.0
+          },
+          "direct_children": 51,
+          "descendant_count": 51,
+          "text_node_count": 30,
+          "image_fill_count": 0,
+          "instance_count": 0
+        }
+      ]
+    },
+    "TYPE4": {
+      "numbered_frame_count": 19,
+      "export_width_px": 780,
+      "static_frame_height_sum": 25982.0,
+      "sections": [
+        {
+          "section_name": "4-1",
+          "semantic_role": "lead_1",
+          "offline_frame_id": "5:1975",
+          "dimensions": {
+            "width": 780.0,
+            "height": 473.0
+          },
+          "position": {
+            "x": 9805.0,
+            "y": 115.0
+          },
+          "direct_children": 3,
+          "descendant_count": 3,
+          "text_node_count": 2,
+          "image_fill_count": 0,
+          "instance_count": 0,
+          "video_sibling": {
+            "offline_node_id": "5:1986",
+            "name": "Group 11",
+            "dimensions": {
+              "width": 688.693359375,
+              "height": 400.30401611328125
+            },
+            "position": {
+              "x": 9898.4375,
+              "y": 647.2509765625
+            }
+          }
+        },
+        {
+          "section_name": "4-2",
+          "semantic_role": "lead_2",
+          "offline_frame_id": "5:1979",
+          "dimensions": {
+            "width": 780.0,
+            "height": 332.0
+          },
+          "position": {
+            "x": 9810.95703125,
+            "y": 1132.0
+          },
+          "direct_children": 3,
+          "descendant_count": 3,
+          "text_node_count": 2,
+          "image_fill_count": 0,
+          "instance_count": 0,
+          "video_sibling": {
+            "offline_node_id": "5:1983",
+            "name": "Group 10",
+            "dimensions": {
+              "width": 688.693359375,
+              "height": 400.30401611328125
+            },
+            "position": {
+              "x": 9909.845703125,
+              "y": 1580.65478515625
+            }
+          }
+        },
+        {
+          "section_name": "4-3",
+          "semantic_role": "official_brand",
+          "offline_frame_id": "5:1989",
+          "dimensions": {
+            "width": 780.0,
+            "height": 290.0
+          },
+          "position": {
+            "x": 9832.0,
+            "y": 2081.0
+          },
+          "direct_children": 7,
+          "descendant_count": 7,
+          "text_node_count": 6,
+          "image_fill_count": 1,
+          "instance_count": 0
+        },
+        {
+          "section_name": "4-4",
+          "semantic_role": "brand_story",
+          "offline_frame_id": "5:3417",
+          "dimensions": {
+            "width": 780.0,
+            "height": 861.0
+          },
+          "position": {
+            "x": 9819.0,
+            "y": 2560.0
+          },
+          "direct_children": 6,
+          "descendant_count": 8,
+          "text_node_count": 4,
+          "image_fill_count": 3,
+          "instance_count": 0
+        },
+        {
+          "section_name": "4-5",
+          "semantic_role": "gift",
+          "offline_frame_id": "5:3506",
+          "dimensions": {
+            "width": 780.0,
+            "height": 678.0
+          },
+          "position": {
+            "x": 9832.0,
+            "y": 3570.0
+          },
+          "direct_children": 6,
+          "descendant_count": 9,
+          "text_node_count": 2,
+          "image_fill_count": 3,
+          "instance_count": 1
+        },
+        {
+          "section_name": "4-6",
+          "semantic_role": "recommendation",
+          "offline_frame_id": "5:4035",
+          "dimensions": {
+            "width": 780.0,
+            "height": 792.0
+          },
+          "position": {
+            "x": 9832.0,
+            "y": 4529.0
+          },
+          "direct_children": 17,
+          "descendant_count": 17,
+          "text_node_count": 6,
+          "image_fill_count": 6,
+          "instance_count": 0
+        },
+        {
+          "section_name": "4-7",
+          "semantic_role": "upgrade",
+          "offline_frame_id": "5:3594",
+          "dimensions": {
+            "width": 780.0,
+            "height": 1629.0
+          },
+          "position": {
+            "x": 9832.0,
+            "y": 5560.0
+          },
+          "direct_children": 20,
+          "descendant_count": 26,
+          "text_node_count": 8,
+          "image_fill_count": 5,
+          "instance_count": 0
+        },
+        {
+          "section_name": "4-8",
+          "semantic_role": "reviews",
+          "offline_frame_id": "5:3824",
+          "dimensions": {
+            "width": 780.0,
+            "height": 2082.0
+          },
+          "position": {
+            "x": 9832.0,
+            "y": 7852.0
+          },
+          "direct_children": 40,
+          "descendant_count": 40,
+          "text_node_count": 23,
+          "image_fill_count": 8,
+          "instance_count": 0
+        },
+        {
+          "section_name": "4-9",
+          "semantic_role": "landing",
+          "offline_frame_id": "5:4223",
+          "dimensions": {
+            "width": 780.0,
+            "height": 1549.0
+          },
+          "position": {
+            "x": 9832.0,
+            "y": 10454.0
+          },
+          "direct_children": 38,
+          "descendant_count": 38,
+          "text_node_count": 12,
+          "image_fill_count": 12,
+          "instance_count": 2
+        },
+        {
+          "section_name": "4-10",
+          "semantic_role": "point_1",
+          "offline_frame_id": "5:4750",
+          "dimensions": {
+            "width": 780.0,
+            "height": 1212.0
+          },
+          "position": {
+            "x": 9832.0,
+            "y": 12742.0
+          },
+          "direct_children": 5,
+          "descendant_count": 5,
+          "text_node_count": 2,
+          "image_fill_count": 1,
+          "instance_count": 1
+        },
+        {
+          "section_name": "4-11",
+          "semantic_role": "point_2",
+          "offline_frame_id": "5:4762",
+          "dimensions": {
+            "width": 780.0,
+            "height": 1212.0
+          },
+          "position": {
+            "x": 9832.0,
+            "y": 14132.0
+          },
+          "direct_children": 4,
+          "descendant_count": 4,
+          "text_node_count": 2,
+          "image_fill_count": 1,
+          "instance_count": 1
+        },
+        {
+          "section_name": "4-12",
+          "semantic_role": "emotional_copy",
+          "offline_frame_id": "5:5817",
+          "dimensions": {
+            "width": 780.0,
+            "height": 697.0
+          },
+          "position": {
+            "x": 9832.0,
+            "y": 15598.0
+          },
+          "direct_children": 3,
+          "descendant_count": 3,
+          "text_node_count": 2,
+          "image_fill_count": 1,
+          "instance_count": 0
+        },
+        {
+          "section_name": "4-13",
+          "semantic_role": "point_3",
+          "offline_frame_id": "5:4756",
+          "dimensions": {
+            "width": 780.0,
+            "height": 1212.0
+          },
+          "position": {
+            "x": 9832.0,
+            "y": 16555.0
+          },
+          "direct_children": 5,
+          "descendant_count": 5,
+          "text_node_count": 2,
+          "image_fill_count": 1,
+          "instance_count": 1
+        },
+        {
+          "section_name": "4-14",
+          "semantic_role": "how_to",
+          "offline_frame_id": "5:4767",
+          "dimensions": {
+            "width": 780.0,
+            "height": 1288.0
+          },
+          "position": {
+            "x": 9832.0,
+            "y": 17998.0
+          },
+          "direct_children": 12,
+          "descendant_count": 12,
+          "text_node_count": 6,
+          "image_fill_count": 4,
+          "instance_count": 1
+        },
+        {
+          "section_name": "4-15",
+          "semantic_role": "point_5",
+          "offline_frame_id": "5:4780",
+          "dimensions": {
+            "width": 780.0,
+            "height": 1474.0
+          },
+          "position": {
+            "x": 9832.0,
+            "y": 19859.0
+          },
+          "direct_children": 6,
+          "descendant_count": 6,
+          "text_node_count": 2,
+          "image_fill_count": 1,
+          "instance_count": 2
+        },
+        {
+          "section_name": "4-16",
+          "semantic_role": "point_size",
+          "offline_frame_id": "5:4788",
+          "dimensions": {
+            "width": 780.0,
+            "height": 1351.0
+          },
+          "position": {
+            "x": 9832.0,
+            "y": 21618.0
+          },
+          "direct_children": 67,
+          "descendant_count": 67,
+          "text_node_count": 34,
+          "image_fill_count": 0,
+          "instance_count": 1
+        },
+        {
+          "section_name": "4-17",
+          "semantic_role": "detail_views",
+          "offline_frame_id": "5:6046",
+          "dimensions": {
+            "width": 780.0,
+            "height": 3035.0
+          },
+          "position": {
+            "x": 9832.0,
+            "y": 23520.0
+          },
+          "direct_children": 6,
+          "descendant_count": 6,
+          "text_node_count": 0,
+          "image_fill_count": 4,
+          "instance_count": 1
+        },
+        {
+          "section_name": "4-18",
+          "semantic_role": "colors_size",
+          "offline_frame_id": "5:6028",
+          "dimensions": {
+            "width": 780.0,
+            "height": 2009.0
+          },
+          "position": {
+            "x": 9832.0,
+            "y": 26931.0
+          },
+          "direct_children": 13,
+          "descendant_count": 17,
+          "text_node_count": 7,
+          "image_fill_count": 5,
+          "instance_count": 0
+        },
+        {
+          "section_name": "4-19",
+          "semantic_role": "qna_product_info",
+          "offline_frame_id": "5:6473",
+          "dimensions": {
+            "width": 780.0,
+            "height": 3806.0
+          },
+          "position": {
+            "x": 9832.0,
+            "y": 29173.0
+          },
+          "direct_children": 51,
+          "descendant_count": 51,
+          "text_node_count": 30,
+          "image_fill_count": 0,
+          "instance_count": 0
+        }
+      ]
+    },
+    "TYPE5": {
+      "numbered_frame_count": 20,
+      "export_width_px": 780,
+      "static_frame_height_sum": 26826.0,
+      "sections": [
+        {
+          "section_name": "5-1",
+          "semantic_role": "lead_1",
+          "offline_frame_id": "5:2008",
+          "dimensions": {
+            "width": 780.0,
+            "height": 473.0
+          },
+          "position": {
+            "x": 13032.0,
+            "y": 115.0
+          },
+          "direct_children": 3,
+          "descendant_count": 3,
+          "text_node_count": 2,
+          "image_fill_count": 0,
+          "instance_count": 0,
+          "video_sibling": {
+            "offline_node_id": "5:2019",
+            "name": "Group 13",
+            "dimensions": {
+              "width": 688.693359375,
+              "height": 400.30401611328125
+            },
+            "position": {
+              "x": 13125.4375,
+              "y": 647.2509765625
+            }
+          }
+        },
+        {
+          "section_name": "5-2",
+          "semantic_role": "lead_2",
+          "offline_frame_id": "5:2012",
+          "dimensions": {
+            "width": 780.0,
+            "height": 332.0
+          },
+          "position": {
+            "x": 13037.95703125,
+            "y": 1132.0
+          },
+          "direct_children": 3,
+          "descendant_count": 3,
+          "text_node_count": 2,
+          "image_fill_count": 0,
+          "instance_count": 0,
+          "video_sibling": {
+            "offline_node_id": "5:2016",
+            "name": "Group 12",
+            "dimensions": {
+              "width": 682.5390625,
+              "height": 399.958740234375
+            },
+            "position": {
+              "x": 13143.0,
+              "y": 1581.0
+            }
+          }
+        },
+        {
+          "section_name": "5-3",
+          "semantic_role": "official_brand",
+          "offline_frame_id": "5:2022",
+          "dimensions": {
+            "width": 780.0,
+            "height": 290.0
+          },
+          "position": {
+            "x": 13059.0,
+            "y": 2081.0
+          },
+          "direct_children": 7,
+          "descendant_count": 7,
+          "text_node_count": 6,
+          "image_fill_count": 1,
+          "instance_count": 0
+        },
+        {
+          "section_name": "5-4",
+          "semantic_role": "brand_story",
+          "offline_frame_id": "5:3426",
+          "dimensions": {
+            "width": 780.0,
+            "height": 861.0
+          },
+          "position": {
+            "x": 13059.0,
+            "y": 2573.0
+          },
+          "direct_children": 6,
+          "descendant_count": 8,
+          "text_node_count": 4,
+          "image_fill_count": 3,
+          "instance_count": 0
+        },
+        {
+          "section_name": "5-5",
+          "semantic_role": "gift",
+          "offline_frame_id": "5:3517",
+          "dimensions": {
+            "width": 780.0,
+            "height": 678.0
+          },
+          "position": {
+            "x": 13059.0,
+            "y": 3727.0
+          },
+          "direct_children": 6,
+          "descendant_count": 9,
+          "text_node_count": 2,
+          "image_fill_count": 3,
+          "instance_count": 1
+        },
+        {
+          "section_name": "5-6",
+          "semantic_role": "upgrade",
+          "offline_frame_id": "5:3637",
+          "dimensions": {
+            "width": 780.0,
+            "height": 1629.0
+          },
+          "position": {
+            "x": 13038.0,
+            "y": 4542.0
+          },
+          "direct_children": 20,
+          "descendant_count": 26,
+          "text_node_count": 8,
+          "image_fill_count": 5,
+          "instance_count": 0
+        },
+        {
+          "section_name": "5-7",
+          "semantic_role": "reviews",
+          "offline_frame_id": "5:3864",
+          "dimensions": {
+            "width": 780.0,
+            "height": 2082.0
+          },
+          "position": {
+            "x": 13026.0,
+            "y": 6811.0
+          },
+          "direct_children": 38,
+          "descendant_count": 38,
+          "text_node_count": 22,
+          "image_fill_count": 7,
+          "instance_count": 0
+        },
+        {
+          "section_name": "5-8",
+          "semantic_role": "comparison",
+          "offline_frame_id": "5:4465",
+          "dimensions": {
+            "width": 780.0,
+            "height": 1196.0
+          },
+          "position": {
+            "x": 13026.0,
+            "y": 9524.0
+          },
+          "direct_children": 8,
+          "descendant_count": 8,
+          "text_node_count": 5,
+          "image_fill_count": 2,
+          "instance_count": 0
+        },
+        {
+          "section_name": "5-9",
+          "semantic_role": "landing",
+          "offline_frame_id": "5:4136",
+          "dimensions": {
+            "width": 780.0,
+            "height": 1057.0
+          },
+          "position": {
+            "x": 13026.0,
+            "y": 10946.0
+          },
+          "direct_children": 16,
+          "descendant_count": 16,
+          "text_node_count": 6,
+          "image_fill_count": 6,
+          "instance_count": 0
+        },
+        {
+          "section_name": "5-10",
+          "semantic_role": "point_size",
+          "offline_frame_id": "5:4902",
+          "dimensions": {
+            "width": 780.0,
+            "height": 1351.0
+          },
+          "position": {
+            "x": 13026.0,
+            "y": 12742.0
+          },
+          "direct_children": 67,
+          "descendant_count": 67,
+          "text_node_count": 34,
+          "image_fill_count": 0,
+          "instance_count": 1
+        },
+        {
+          "section_name": "5-11",
+          "semantic_role": "point_1",
+          "offline_frame_id": "5:4876",
+          "dimensions": {
+            "width": 780.0,
+            "height": 1212.0
+          },
+          "position": {
+            "x": 13026.0,
+            "y": 14197.0
+          },
+          "direct_children": 4,
+          "descendant_count": 4,
+          "text_node_count": 2,
+          "image_fill_count": 1,
+          "instance_count": 1
+        },
+        {
+          "section_name": "5-12",
+          "semantic_role": "point_2",
+          "offline_frame_id": "5:4870",
+          "dimensions": {
+            "width": 780.0,
+            "height": 1212.0
+          },
+          "position": {
+            "x": 13026.0,
+            "y": 16092.0
+          },
+          "direct_children": 5,
+          "descendant_count": 5,
+          "text_node_count": 2,
+          "image_fill_count": 1,
+          "instance_count": 1
+        },
+        {
+          "section_name": "5-13",
+          "semantic_role": "comparison_2",
+          "offline_frame_id": "5:4455",
+          "dimensions": {
+            "width": 780.0,
+            "height": 1078.0
+          },
+          "position": {
+            "x": 13026.0,
+            "y": 17564.0
+          },
+          "direct_children": 9,
+          "descendant_count": 9,
+          "text_node_count": 5,
+          "image_fill_count": 2,
+          "instance_count": 0
+        },
+        {
+          "section_name": "5-14",
+          "semantic_role": "how_to",
+          "offline_frame_id": "5:4881",
+          "dimensions": {
+            "width": 780.0,
+            "height": 1288.0
+          },
+          "position": {
+            "x": 13026.0,
+            "y": 18832.0
+          },
+          "direct_children": 12,
+          "descendant_count": 12,
+          "text_node_count": 6,
+          "image_fill_count": 4,
+          "instance_count": 1
+        },
+        {
+          "section_name": "5-15",
+          "semantic_role": "point_5",
+          "offline_frame_id": "5:4894",
+          "dimensions": {
+            "width": 780.0,
+            "height": 1474.0
+          },
+          "position": {
+            "x": 13026.0,
+            "y": 20346.0
+          },
+          "direct_children": 6,
+          "descendant_count": 6,
+          "text_node_count": 2,
+          "image_fill_count": 1,
+          "instance_count": 2
+        },
+        {
+          "section_name": "5-16",
+          "semantic_role": "brand_mood",
+          "offline_frame_id": "5:6287",
+          "dimensions": {
+            "width": 780.0,
+            "height": 551.0
+          },
+          "position": {
+            "x": 13026.0,
+            "y": 22045.0
+          },
+          "direct_children": 5,
+          "descendant_count": 5,
+          "text_node_count": 2,
+          "image_fill_count": 1,
+          "instance_count": 0
+        },
+        {
+          "section_name": "5-17",
+          "semantic_role": "point_3",
+          "offline_frame_id": "5:4864",
+          "dimensions": {
+            "width": 780.0,
+            "height": 1212.0
+          },
+          "position": {
+            "x": 13026.0,
+            "y": 22914.0
+          },
+          "direct_children": 5,
+          "descendant_count": 5,
+          "text_node_count": 2,
+          "image_fill_count": 1,
+          "instance_count": 1
+        },
+        {
+          "section_name": "5-18",
+          "semantic_role": "detail_views",
+          "offline_frame_id": "5:6117",
+          "dimensions": {
+            "width": 780.0,
+            "height": 3035.0
+          },
+          "position": {
+            "x": 13026.0,
+            "y": 24316.5
+          },
+          "direct_children": 6,
+          "descendant_count": 6,
+          "text_node_count": 0,
+          "image_fill_count": 4,
+          "instance_count": 1
+        },
+        {
+          "section_name": "5-19",
+          "semantic_role": "colors_size",
+          "offline_frame_id": "5:6099",
+          "dimensions": {
+            "width": 780.0,
+            "height": 2009.0
+          },
+          "position": {
+            "x": 13026.0,
+            "y": 27652.5
+          },
+          "direct_children": 13,
+          "descendant_count": 17,
+          "text_node_count": 7,
+          "image_fill_count": 5,
+          "instance_count": 0
+        },
+        {
+          "section_name": "5-20",
+          "semantic_role": "qna_product_info",
+          "offline_frame_id": "5:6527",
+          "dimensions": {
+            "width": 780.0,
+            "height": 3806.0
+          },
+          "position": {
+            "x": 13026.0,
+            "y": 29810.0
+          },
+          "direct_children": 51,
+          "descendant_count": 51,
+          "text_node_count": 30,
+          "image_fill_count": 0,
+          "instance_count": 0
+        }
+      ]
+    },
+    "TYPE6": {
+      "numbered_frame_count": 17,
+      "export_width_px": 780,
+      "static_frame_height_sum": 26682.0,
+      "sections": [
+        {
+          "section_name": "6-1",
+          "semantic_role": "lead_1",
+          "offline_frame_id": "5:2041",
+          "dimensions": {
+            "width": 780.0,
+            "height": 473.0
+          },
+          "position": {
+            "x": 16262.0,
+            "y": 115.0
+          },
+          "direct_children": 3,
+          "descendant_count": 3,
+          "text_node_count": 2,
+          "image_fill_count": 0,
+          "instance_count": 0,
+          "video_sibling": {
+            "offline_node_id": "5:2052",
+            "name": "Group 15",
+            "dimensions": {
+              "width": 688.693359375,
+              "height": 400.30401611328125
+            },
+            "position": {
+              "x": 16355.4375,
+              "y": 647.2509765625
+            }
+          }
+        },
+        {
+          "section_name": "6-2",
+          "semantic_role": "lead_2",
+          "offline_frame_id": "5:2045",
+          "dimensions": {
+            "width": 780.0,
+            "height": 332.0
+          },
+          "position": {
+            "x": 16267.95703125,
+            "y": 1132.0
+          },
+          "direct_children": 3,
+          "descendant_count": 3,
+          "text_node_count": 2,
+          "image_fill_count": 0,
+          "instance_count": 0,
+          "video_sibling": {
+            "offline_node_id": "5:2049",
+            "name": "Group 14",
+            "dimensions": {
+              "width": 688.693359375,
+              "height": 400.30401611328125
+            },
+            "position": {
+              "x": 16366.845703125,
+              "y": 1580.65478515625
+            }
+          }
+        },
+        {
+          "section_name": "6-3",
+          "semantic_role": "official_brand",
+          "offline_frame_id": "5:2055",
+          "dimensions": {
+            "width": 780.0,
+            "height": 290.0
+          },
+          "position": {
+            "x": 16289.0,
+            "y": 2081.0
+          },
+          "direct_children": 7,
+          "descendant_count": 7,
+          "text_node_count": 6,
+          "image_fill_count": 1,
+          "instance_count": 0
+        },
+        {
+          "section_name": "6-4",
+          "semantic_role": "brand_story",
+          "offline_frame_id": "5:3435",
+          "dimensions": {
+            "width": 780.0,
+            "height": 861.0
+          },
+          "position": {
+            "x": 16244.0,
+            "y": 2573.0
+          },
+          "direct_children": 6,
+          "descendant_count": 8,
+          "text_node_count": 4,
+          "image_fill_count": 3,
+          "instance_count": 0
+        },
+        {
+          "section_name": "6-5",
+          "semantic_role": "gift",
+          "offline_frame_id": "5:3528",
+          "dimensions": {
+            "width": 780.0,
+            "height": 678.0
+          },
+          "position": {
+            "x": 16262.0,
+            "y": 3727.0
+          },
+          "direct_children": 6,
+          "descendant_count": 9,
+          "text_node_count": 2,
+          "image_fill_count": 3,
+          "instance_count": 1
+        },
+        {
+          "section_name": "6-6",
+          "semantic_role": "upgrade",
+          "offline_frame_id": "5:3960",
+          "dimensions": {
+            "width": 780.0,
+            "height": 2432.0
+          },
+          "position": {
+            "x": 16289.0,
+            "y": 4938.0
+          },
+          "direct_children": 26,
+          "descendant_count": 26,
+          "text_node_count": 10,
+          "image_fill_count": 4,
+          "instance_count": 1
+        },
+        {
+          "section_name": "6-7",
+          "semantic_role": "landing",
+          "offline_frame_id": "5:4076",
+          "dimensions": {
+            "width": 780.0,
+            "height": 1499.0
+          },
+          "position": {
+            "x": 16289.0,
+            "y": 7956.0
+          },
+          "direct_children": 6,
+          "descendant_count": 6,
+          "text_node_count": 3,
+          "image_fill_count": 2,
+          "instance_count": 0
+        },
+        {
+          "section_name": "6-8",
+          "semantic_role": "use_cases",
+          "offline_frame_id": "2029:179",
+          "dimensions": {
+            "width": 780.0,
+            "height": 3801.0
+          },
+          "position": {
+            "x": 16289.0,
+            "y": 9691.0
+          },
+          "direct_children": 21,
+          "descendant_count": 21,
+          "text_node_count": 9,
+          "image_fill_count": 5,
+          "instance_count": 1
+        },
+        {
+          "section_name": "6-9",
+          "semantic_role": "point_1",
+          "offline_frame_id": "5:4978",
+          "dimensions": {
+            "width": 780.0,
+            "height": 1212.0
+          },
+          "position": {
+            "x": 16289.17578125,
+            "y": 13909.0
+          },
+          "direct_children": 5,
+          "descendant_count": 5,
+          "text_node_count": 2,
+          "image_fill_count": 1,
+          "instance_count": 1
+        },
+        {
+          "section_name": "6-10",
+          "semantic_role": "point_2",
+          "offline_frame_id": "5:4990",
+          "dimensions": {
+            "width": 780.0,
+            "height": 1212.0
+          },
+          "position": {
+            "x": 16289.0,
+            "y": 15253.5
+          },
+          "direct_children": 4,
+          "descendant_count": 4,
+          "text_node_count": 2,
+          "image_fill_count": 1,
+          "instance_count": 1
+        },
+        {
+          "section_name": "6-11",
+          "semantic_role": "point_3",
+          "offline_frame_id": "5:4984",
+          "dimensions": {
+            "width": 780.0,
+            "height": 1258.0
+          },
+          "position": {
+            "x": 16289.0,
+            "y": 17146.0
+          },
+          "direct_children": 5,
+          "descendant_count": 5,
+          "text_node_count": 2,
+          "image_fill_count": 1,
+          "instance_count": 1
+        },
+        {
+          "section_name": "6-12",
+          "semantic_role": "emotional_copy",
+          "offline_frame_id": "5:6293",
+          "dimensions": {
+            "width": 780.0,
+            "height": 724.0
+          },
+          "position": {
+            "x": 16289.0,
+            "y": 18536.0
+          },
+          "direct_children": 3,
+          "descendant_count": 3,
+          "text_node_count": 2,
+          "image_fill_count": 1,
+          "instance_count": 0
+        },
+        {
+          "section_name": "6-13",
+          "semantic_role": "how_to",
+          "offline_frame_id": "5:4995",
+          "dimensions": {
+            "width": 780.0,
+            "height": 1337.0
+          },
+          "position": {
+            "x": 16289.0,
+            "y": 19391.0
+          },
+          "direct_children": 12,
+          "descendant_count": 12,
+          "text_node_count": 6,
+          "image_fill_count": 4,
+          "instance_count": 1
+        },
+        {
+          "section_name": "6-14",
+          "semantic_role": "point_5",
+          "offline_frame_id": "5:5008",
+          "dimensions": {
+            "width": 780.0,
+            "height": 1530.0
+          },
+          "position": {
+            "x": 16289.0,
+            "y": 20963.0
+          },
+          "direct_children": 6,
+          "descendant_count": 6,
+          "text_node_count": 2,
+          "image_fill_count": 1,
+          "instance_count": 2
+        },
+        {
+          "section_name": "6-15",
+          "semantic_role": "detail_views",
+          "offline_frame_id": "5:6188",
+          "dimensions": {
+            "width": 780.0,
+            "height": 3151.0
+          },
+          "position": {
+            "x": 16289.0,
+            "y": 22728.0
+          },
+          "direct_children": 6,
+          "descendant_count": 6,
+          "text_node_count": 0,
+          "image_fill_count": 4,
+          "instance_count": 1
+        },
+        {
+          "section_name": "6-16",
+          "semantic_role": "colors_size",
+          "offline_frame_id": "5:6170",
+          "dimensions": {
+            "width": 780.0,
+            "height": 2086.0
+          },
+          "position": {
+            "x": 16289.0,
+            "y": 26191.0
+          },
+          "direct_children": 13,
+          "descendant_count": 17,
+          "text_node_count": 7,
+          "image_fill_count": 5,
+          "instance_count": 0
+        },
+        {
+          "section_name": "6-17",
+          "semantic_role": "qna_product_info",
+          "offline_frame_id": "5:6581",
+          "dimensions": {
+            "width": 780.0,
+            "height": 3806.0
+          },
+          "position": {
+            "x": 16289.0,
+            "y": 28468.0
+          },
+          "direct_children": 51,
+          "descendant_count": 51,
+          "text_node_count": 30,
+          "image_fill_count": 0,
+          "instance_count": 0
+        }
+      ]
+    },
+    "TYPE7": {
+      "numbered_frame_count": 20,
+      "export_width_px": 780,
+      "static_frame_height_sum": 30455.0,
+      "sections": [
+        {
+          "section_name": "7-1",
+          "semantic_role": "lead_1",
+          "offline_frame_id": "5:2076",
+          "dimensions": {
+            "width": 780.0,
+            "height": 473.0
+          },
+          "position": {
+            "x": 18691.0,
+            "y": 115.0
+          },
+          "direct_children": 3,
+          "descendant_count": 3,
+          "text_node_count": 2,
+          "image_fill_count": 0,
+          "instance_count": 0,
+          "video_sibling": {
+            "offline_node_id": "5:2087",
+            "name": "Group 17",
+            "dimensions": {
+              "width": 688.693359375,
+              "height": 400.30401611328125
+            },
+            "position": {
+              "x": 18784.4375,
+              "y": 647.2509765625
+            }
+          }
+        },
+        {
+          "section_name": "7-2",
+          "semantic_role": "lead_2",
+          "offline_frame_id": "5:2080",
+          "dimensions": {
+            "width": 780.0,
+            "height": 332.0
+          },
+          "position": {
+            "x": 18696.95703125,
+            "y": 1132.0
+          },
+          "direct_children": 3,
+          "descendant_count": 3,
+          "text_node_count": 2,
+          "image_fill_count": 0,
+          "instance_count": 0,
+          "video_sibling": {
+            "offline_node_id": "5:2084",
+            "name": "Group 16",
+            "dimensions": {
+              "width": 688.693359375,
+              "height": 400.30401611328125
+            },
+            "position": {
+              "x": 18795.845703125,
+              "y": 1580.65478515625
+            }
+          }
+        },
+        {
+          "section_name": "7-3",
+          "semantic_role": "official_brand",
+          "offline_frame_id": "5:2090",
+          "dimensions": {
+            "width": 780.0,
+            "height": 290.0
+          },
+          "position": {
+            "x": 18718.0,
+            "y": 2081.0
+          },
+          "direct_children": 7,
+          "descendant_count": 7,
+          "text_node_count": 6,
+          "image_fill_count": 1,
+          "instance_count": 0
+        },
+        {
+          "section_name": "7-4",
+          "semantic_role": "brand_story",
+          "offline_frame_id": "5:3444",
+          "dimensions": {
+            "width": 780.0,
+            "height": 861.0
+          },
+          "position": {
+            "x": 18718.0,
+            "y": 2573.0
+          },
+          "direct_children": 6,
+          "descendant_count": 8,
+          "text_node_count": 4,
+          "image_fill_count": 3,
+          "instance_count": 0
+        },
+        {
+          "section_name": "7-5",
+          "semantic_role": "gift",
+          "offline_frame_id": "5:3539",
+          "dimensions": {
+            "width": 780.0,
+            "height": 678.0
+          },
+          "position": {
+            "x": 18718.0,
+            "y": 3727.0
+          },
+          "direct_children": 6,
+          "descendant_count": 9,
+          "text_node_count": 2,
+          "image_fill_count": 3,
+          "instance_count": 1
+        },
+        {
+          "section_name": "7-6",
+          "semantic_role": "problem",
+          "offline_frame_id": "5:3682",
+          "dimensions": {
+            "width": 780.0,
+            "height": 2269.0
+          },
+          "position": {
+            "x": 18718.0,
+            "y": 4542.0
+          },
+          "direct_children": 15,
+          "descendant_count": 15,
+          "text_node_count": 6,
+          "image_fill_count": 4,
+          "instance_count": 0
+        },
+        {
+          "section_name": "7-7",
+          "semantic_role": "upgrade",
+          "offline_frame_id": "5:3988",
+          "dimensions": {
+            "width": 780.0,
+            "height": 2432.0
+          },
+          "position": {
+            "x": 18718.0,
+            "y": 6946.0
+          },
+          "direct_children": 26,
+          "descendant_count": 26,
+          "text_node_count": 10,
+          "image_fill_count": 4,
+          "instance_count": 1
+        },
+        {
+          "section_name": "7-8",
+          "semantic_role": "landing",
+          "offline_frame_id": "5:4156",
+          "dimensions": {
+            "width": 780.0,
+            "height": 1499.0
+          },
+          "position": {
+            "x": 18754.0,
+            "y": 9693.0
+          },
+          "direct_children": 8,
+          "descendant_count": 8,
+          "text_node_count": 4,
+          "image_fill_count": 2,
+          "instance_count": 0
+        },
+        {
+          "section_name": "7-9",
+          "semantic_role": "use_cases",
+          "offline_frame_id": "2029:202",
+          "dimensions": {
+            "width": 780.0,
+            "height": 3801.0
+          },
+          "position": {
+            "x": 18754.0,
+            "y": 11507.0
+          },
+          "direct_children": 21,
+          "descendant_count": 21,
+          "text_node_count": 9,
+          "image_fill_count": 5,
+          "instance_count": 1
+        },
+        {
+          "section_name": "7-10",
+          "semantic_role": "point_1",
+          "offline_frame_id": "5:5092",
+          "dimensions": {
+            "width": 780.0,
+            "height": 1212.0
+          },
+          "position": {
+            "x": 18754.0,
+            "y": 16034.0
+          },
+          "direct_children": 5,
+          "descendant_count": 5,
+          "text_node_count": 2,
+          "image_fill_count": 1,
+          "instance_count": 1
+        },
+        {
+          "section_name": "7-11",
+          "semantic_role": "point_2",
+          "offline_frame_id": "5:5104",
+          "dimensions": {
+            "width": 780.0,
+            "height": 1212.0
+          },
+          "position": {
+            "x": 18754.0,
+            "y": 17875.0
+          },
+          "direct_children": 4,
+          "descendant_count": 4,
+          "text_node_count": 2,
+          "image_fill_count": 1,
+          "instance_count": 1
+        },
+        {
+          "section_name": "7-12",
+          "semantic_role": "compatibility",
+          "offline_frame_id": "5:5784",
+          "dimensions": {
+            "width": 780.0,
+            "height": 1272.0
+          },
+          "position": {
+            "x": 18754.0,
+            "y": 19339.0
+          },
+          "direct_children": 5,
+          "descendant_count": 5,
+          "text_node_count": 2,
+          "image_fill_count": 2,
+          "instance_count": 0
+        },
+        {
+          "section_name": "7-13",
+          "semantic_role": "point_3",
+          "offline_frame_id": "5:5098",
+          "dimensions": {
+            "width": 780.0,
+            "height": 1212.0
+          },
+          "position": {
+            "x": 18754.0,
+            "y": 20807.0
+          },
+          "direct_children": 5,
+          "descendant_count": 5,
+          "text_node_count": 2,
+          "image_fill_count": 1,
+          "instance_count": 1
+        },
+        {
+          "section_name": "7-14",
+          "semantic_role": "how_to",
+          "offline_frame_id": "5:5109",
+          "dimensions": {
+            "width": 780.0,
+            "height": 1288.0
+          },
+          "position": {
+            "x": 18754.0,
+            "y": 22452.0
+          },
+          "direct_children": 12,
+          "descendant_count": 12,
+          "text_node_count": 6,
+          "image_fill_count": 4,
+          "instance_count": 1
+        },
+        {
+          "section_name": "7-14",
+          "semantic_role": "included_components",
+          "offline_frame_id": "5:5765",
+          "dimensions": {
+            "width": 780.0,
+            "height": 749.0
+          },
+          "position": {
+            "x": 18754.0,
+            "y": 24157.0
+          },
+          "direct_children": 18,
+          "descendant_count": 18,
+          "text_node_count": 9,
+          "image_fill_count": 5,
+          "instance_count": 0
+        },
+        {
+          "section_name": "7-15",
+          "semantic_role": "point_5",
+          "offline_frame_id": "5:5122",
+          "dimensions": {
+            "width": 780.0,
+            "height": 1474.0
+          },
+          "position": {
+            "x": 18754.0,
+            "y": 25212.0
+          },
+          "direct_children": 6,
+          "descendant_count": 6,
+          "text_node_count": 2,
+          "image_fill_count": 1,
+          "instance_count": 2
+        },
+        {
+          "section_name": "7-16",
+          "semantic_role": "brand_mood",
+          "offline_frame_id": "5:6303",
+          "dimensions": {
+            "width": 780.0,
+            "height": 551.0
+          },
+          "position": {
+            "x": 18754.0,
+            "y": 26853.0
+          },
+          "direct_children": 5,
+          "descendant_count": 5,
+          "text_node_count": 2,
+          "image_fill_count": 1,
+          "instance_count": 0
+        },
+        {
+          "section_name": "7-17",
+          "semantic_role": "detail_views",
+          "offline_frame_id": "5:6259",
+          "dimensions": {
+            "width": 780.0,
+            "height": 3035.0
+          },
+          "position": {
+            "x": 18754.0,
+            "y": 27527.0
+          },
+          "direct_children": 6,
+          "descendant_count": 6,
+          "text_node_count": 0,
+          "image_fill_count": 4,
+          "instance_count": 1
+        },
+        {
+          "section_name": "7-18",
+          "semantic_role": "colors_size",
+          "offline_frame_id": "5:6241",
+          "dimensions": {
+            "width": 780.0,
+            "height": 2009.0
+          },
+          "position": {
+            "x": 18754.0,
+            "y": 30810.0
+          },
+          "direct_children": 13,
+          "descendant_count": 17,
+          "text_node_count": 7,
+          "image_fill_count": 5,
+          "instance_count": 0
+        },
+        {
+          "section_name": "7-19",
+          "semantic_role": "qna_product_info",
+          "offline_frame_id": "5:6635",
+          "dimensions": {
+            "width": 780.0,
+            "height": 3806.0
+          },
+          "position": {
+            "x": 18754.0,
+            "y": 33017.0
+          },
+          "direct_children": 51,
+          "descendant_count": 51,
+          "text_node_count": 30,
+          "image_fill_count": 0,
+          "instance_count": 0
+        }
+      ]
+    }
+  },
+  "semantic_role_provenance": "Analyst classification based on frame text and neighboring layout, not source layer names. Actual section_name/offline IDs/dimensions are decoded source facts."
+}

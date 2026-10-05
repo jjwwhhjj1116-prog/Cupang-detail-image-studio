@@ -19,7 +19,7 @@ def profiles(repo):
         require((model.get("adult") is True or model.get("fictional_adult") is True) and model.get("concept_age", 0) >= 20, "Use the configured adult models")
         require(model.get("selection_status") in {"candidate", "locked_by_user"}, "Invalid selection status")
         source = relative_path(model["reference_file"], repo)
-        require(source.is_file(), f"Missing canonical portrait for {model['id']}: restore the private model assets")
+        require(source.is_file(), f"Missing canonical portrait for {model['id']}: restore the approved repository model assets")
         require(digest(source) == model["sha256"], f"Canonical portrait changed for {model['id']}; create and select a new revision")
         for field, label in (("character_sheet", "Character sheet"), ("expression_sheet", "Expression sheet")):
             sheet = model.get(field)

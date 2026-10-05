@@ -1,14 +1,16 @@
 # 로컬 Remotion 편집
 
-공식 Agent Skills 12개를 이 PC의 Codex 스킬 폴더에 설치했다. 버전은 4.0.533이며 공식 저장소 커밋과 각 SKILL.md 해시를 `config/remotion-skills.lock.json`에 고정했다. 새 채팅부터 자동 스킬 검색에 반영된다. 현재 작업에서도 저장된 지침을 읽고 실행할 수 있다.
+공식 Agent Skills 12개의 버전은 4.0.533이며 공식 저장소 커밋과 각 SKILL.md 해시를 `config/remotion-skills.lock.json`에 고정했다. 새 PC는 `scripts/setup-studio.ps1`로 저장소의 `.agents/skills/`에 설치한다. 저장소를 연 새 채팅부터 자동 스킬 검색에 반영된다. 현재 작업에서도 저장된 지침을 직접 읽고 실행할 수 있다.
 
 ```powershell
-python scripts/setup-remotion-skills.py --check
-python scripts/setup-remotion-skills.py
+python scripts/setup-remotion-skills.py --dest .agents/skills --check
+python scripts/setup-remotion-skills.py --dest .agents/skills
 powershell -File scripts/setup-remotion.ps1
 ```
 
 첫 명령은 설치를 확인하고 두 번째는 없는 스킬을 고정된 공식 버전으로 설치한다. 이미 있는 다른 버전을 덮어쓰지 않는다. 렌더 프로젝트는 `remotion/`이며 package-lock.json으로 실제 npm 의존성을 고정했다. 설치 경로가 PATH에 없는 PC에서는 Codex가 로컬 Node/Python 경로를 지정한다.
+
+새 PC의 도구 경로는 `.local/runtime.json`의 `python.path`, `node.path`, `ffmpeg.path`, `ffmpeg.ffprobe`, `font.path`를 사용한다. 아래의 `python`을 탐색한 실행 파일로 바꾸고 렌더 명령에 필요하면 `--node <node.path> --ffprobe <ffmpeg.ffprobe> --font <font.path>`를 전달한다. 폰트·FFmpeg·Node의 다른 PC 절대 경로는 재사용하지 않는다. 정상 설치에서는 Python·Node를 전역 PATH에 추가할 필요가 없다.
 
 제작은 **Flow 원본 생성 → 실제 장면 검수 → FFmpeg 무자막 5초 편집 → Remotion 타이포/무자막 렌더 → 결과 검수 → Figma·다운로드 출력** 순서다. Remotion은 자막 선택을 바꿀 때 Flow를 호출하지 않는다.
 

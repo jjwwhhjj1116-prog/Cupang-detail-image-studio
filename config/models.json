@@ -19,7 +19,7 @@
       "fictional_adult": true,
       "concept_age": 24,
       "selection_status": "locked_by_user",
-      "reference_file": ".local/models/female-f01/master.png",
+      "reference_file": "assets/models/female-f01/master.png",
       "sha256": "07c9947e3e115cb3cef3039ad43e00a1c7ddc035bc8535937b8db24d9a159a79",
       "appearance": "밝고 투명한 피부, 몽환적인 눈매, 자연스러운 로지 립, 긴 다크브라운 머리. 차분한 한국 패션 인플루언서 분위기.",
       "preserve": [
@@ -40,7 +40,7 @@
       ],
       "character_sheet": {
         "revision": 1,
-        "file": ".local/models/female-f01/character-sheet-v1.png",
+        "file": "assets/models/female-f01/character-sheet-v1.png",
         "sha256": "054d917f016e932488249c88947ecdd89baa63cc95d8167e695b72fe28c43af8",
         "dimensions_px": [
           1254,
@@ -65,7 +65,7 @@
       },
       "expression_sheet": {
         "revision": 1,
-        "file": ".local/models/female-f01/dreamy-expressions-v1.png",
+        "file": "assets/models/female-f01/dreamy-expressions-v1.png",
         "sha256": "d4057e790e508cf13b38f4bc828fe57d571414a6acfcf5ed55b42af0eb58fc8c",
         "dimensions_px": [
           1374,
@@ -91,7 +91,7 @@
       "revision": 6,
       "concept_age": 27,
       "selection_status": "locked_by_user",
-      "reference_file": ".local/models/male-m01/master-v6-user-reference.png",
+      "reference_file": "assets/models/male-m01/master-v6-user-reference.png",
       "sha256": "30b270bcfba8c5a02569160238c5e71c5cb07665c846f0c8334884722c5b007c",
       "appearance": "사용자가 마지막으로 지정한 단독 남자 사진의 얼굴을 그대로 기준으로 사용. 눈매·코·입·턱선·피부 톤을 재해석하거나 이전 후보와 혼합하지 않는다.",
       "preserve": [
@@ -114,7 +114,7 @@
       "reference_origin": "user_selected_photo",
       "character_sheet": {
         "revision": 1,
-        "file": ".local/models/male-m01/character-sheet-v1.png",
+        "file": "assets/models/male-m01/character-sheet-v1.png",
         "sha256": "caa715cc00ec176cb5656394f91e885eb1584ec1598f12480d05df02c15125bc",
         "dimensions_px": [
           1254,
@@ -139,7 +139,7 @@
       },
       "expression_sheet": {
         "revision": 1,
-        "file": ".local/models/male-m01/dreamy-expressions-v1.png",
+        "file": "assets/models/male-m01/dreamy-expressions-v1.png",
         "sha256": "afb2d017295bc80cf1e8115124bd410bc1e7fda268205f772e9daee5cd27c663",
         "dimensions_px": [
           1223,
@@ -187,5 +187,6 @@
       "가벼운 젖은 질감",
       "자연스러운 바람 연출"
     ]
-  }
+  },
+  "distribution": "approved_reference_assets_tracked_in_repository"
 }

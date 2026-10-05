@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "repository": "https://github.com/jjwwhhjj1116-prog/Cupang-detail-image-studio.git",
+  "supported_setup": "Windows x64, PowerShell 5.1 or later, Codex desktop signed in",
+  "skills_scope": "repository .agents/skills; preserve existing user skills",
+  "agent_names": ["detail_image_director", "detail_motion_editor", "detail_figma_assembler"],
+  "figma": {
+    "file_key": "mPb3wKOgVWcT7odiyd2WBc",
+    "template_page_id": "8:295",
+    "url": "https://www.figma.com/design/mPb3wKOgVWcT7odiyd2WBc/?node-id=8-295",
+    "ownership": "user_owned_imported_master",
+    "preserve_master": true,
+    "duplicate_per_product": true,
+    "verify_edit_access_on_each_pc": true,
+    "received_fig_not_redistributed": true
+  },
+  "connections": {
+    "figma_plugin": "figma@openai-curated-remote",
+    "flow_url": "https://labs.google/fx/tools/flow",
+    "image_generation": "Codex built-in image generation; verify availability in the current chat",
+    "browser": "Codex in-app browser or supported Chrome integration",
+    "authentication": "normal sign-in once per PC; reuse its existing session thereafter",
+    "transfer_credentials": false,
+    "auto_purchase_credits": false
+  },
+  "delivery_rule": "리드 MP4 두 개는 각각 다운로드로 제공. 영상 제작을 제외한 나머지는 선택한 템플릿 TYPE에 맞춰 AI 이미지를 생성·교체하고 필요한 문구를 채워, 완성된 편집 가능한 Figma 파일로 최종 결과물을 제공.",
+  "parallel_pcs": {
+    "same_workflow_independent_jobs": true,
+    "local_machine_id": ".local/machine.json",
+    "job_id_pattern": "YYYYMMDD-<machine_id>-<product_slug>",
+    "one_owner_pc_per_active_job": true,
+    "never_edit_master_for_product_output": true,
+    "handoff": "Transfer the full private job folder with state, sources, reservations and hashes; reconcile unknown provider requests before continuing"
+  }
+}

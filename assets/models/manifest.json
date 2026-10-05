@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "assets": [
+    {
+      "file": "assets/models/female-f01/master.png",
+      "sha256": "07c9947e3e115cb3cef3039ad43e00a1c7ddc035bc8535937b8db24d9a159a79",
+      "model_id": "female-f01"
+    },
+    {
+      "file": "assets/models/female-f01/character-sheet-v1.png",
+      "sha256": "054d917f016e932488249c88947ecdd89baa63cc95d8167e695b72fe28c43af8",
+      "model_id": "female-f01"
+    },
+    {
+      "file": "assets/models/female-f01/dreamy-expressions-v1.png",
+      "sha256": "d4057e790e508cf13b38f4bc828fe57d571414a6acfcf5ed55b42af0eb58fc8c",
+      "model_id": "female-f01"
+    },
+    {
+      "file": "assets/models/male-m01/master-v6-user-reference.png",
+      "sha256": "30b270bcfba8c5a02569160238c5e71c5cb07665c846f0c8334884722c5b007c",
+      "model_id": "male-m01"
+    },
+    {
+      "file": "assets/models/male-m01/character-sheet-v1.png",
+      "sha256": "caa715cc00ec176cb5656394f91e885eb1584ec1598f12480d05df02c15125bc",
+      "model_id": "male-m01"
+    },
+    {
+      "file": "assets/models/male-m01/dreamy-expressions-v1.png",
+      "sha256": "afb2d017295bc80cf1e8115124bd410bc1e7fda268205f772e9daee5cd27c663",
+      "model_id": "male-m01"
+    }
+  ]
+}

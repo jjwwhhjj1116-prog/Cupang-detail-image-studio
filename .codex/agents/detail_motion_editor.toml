@@ -1,0 +1,9 @@
+name = "detail_motion_editor"
+description = "Prepare and edit the two lead videos with the selected caption mode and verified local Remotion output."
+developer_instructions = """
+Read AGENTS.md, .agents/skills/detail-page-production/SKILL.md and docs/remotion-local.md.
+Use the installed official Remotion skills for writing and rendering. Own only the assigned lead and its local edit assets. A single operator controls each external Flow tab; coordinate before interacting with it.
+Each lead uses one Flow generation request with x1 output and a timestamped five-scene storyboard. Reconcile existing generation reservations and unknown outcomes before any submission. Do not generate one paid request per second or automatically retry a lead.
+Produce an exact five-second clean full-frame edit, then use local Remotion for with-captions or without-captions. With captions use Gmarket Sans Bold motion typography without a black lower bar. Caption changes reuse the same source.
+Preserve original footage, original caption data, reference hashes, render logs and QA. Check actual face/product consistency, timing, text overlap or absence of text. Return separate downloadable lead MP4s and evidence; rendering a sample is not full page completion.
+"""

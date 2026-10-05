@@ -204,7 +204,8 @@
     "identity_review_required": true
   },
   "full_page_delivery": {
-    "editable_figma_result": "owned_working_copy_filled_with_all_required_images_copy_and_specs",
+    "editable_figma_result": "selected_type_owned_working_copy_with_generated_replacements_for_all_required_non_video_image_slots_and_editable_copy_specs",
+    "description_ko": "리드 MP4 두 개는 각각 다운로드로 제공. 영상 제작을 제외한 나머지는 선택한 템플릿 TYPE에 맞춰 AI 이미지를 생성·교체하여 완성된 편집 가능한 Figma 파일로 제공.",
     "separate_downloadable_videos": ["lead-1.mp4", "lead-2.mp4"],
     "ordered_static_images_required": true,
     "real_figma_render_and_video_playback_review_required": true

@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "platform": "windows-x64",
+  "verified_at": "2026-10-05",
+  "python": {
+    "fallback_version": "3.12.10",
+    "minimum_existing_version": "3.11",
+    "source": "https://www.python.org/downloads/release/python-31210/",
+    "embedded_package_policy": "https://docs.python.org/3.12/using/windows.html#the-embeddable-package",
+    "archive": {
+      "filename": "python-3.12.10-embed-amd64.zip",
+      "url": "https://www.python.org/ftp/python/3.12.10/python-3.12.10-embed-amd64.zip",
+      "sha256": "4acbed6dd1c744b0376e3b1cf57ce906f9dc9e95e68824584c8099a63025a3c3"
+    },
+    "executable_sha256": "4d6f5f81a4bca11191c4c7c6b43632694d0a4ce74e068619d8fdc161d469859a"
+  },
+  "pillow": {
+    "version": "12.3.0",
+    "source": "https://pypi.org/project/pillow/12.3.0/",
+    "metadata_source": "https://pypi.org/pypi/Pillow/12.3.0/json",
+    "archive": {
+      "filename": "pillow-12.3.0-cp312-cp312-win_amd64.whl",
+      "url": "https://files.pythonhosted.org/packages/45/89/da2f7971a317f83d807fdd4065c0af40208e59e692cc43d315a71a0e96d1/pillow-12.3.0-cp312-cp312-win_amd64.whl",
+      "sha256": "a2b55dd6b2a4c4b7d87ffa56bdb33fdc5fdb9a462173861a7bc097f17d91cb09"
+    }
+  },
+  "node": {
+    "fallback_version": "22.15.0",
+    "minimum_existing_major": 22,
+    "source": "https://nodejs.org/en/download/archive/v22.15.0",
+    "checksum_source": "https://nodejs.org/dist/v22.15.0/SHASUMS256.txt",
+    "archive": {
+      "filename": "node-v22.15.0-win-x64.zip",
+      "url": "https://nodejs.org/dist/v22.15.0/node-v22.15.0-win-x64.zip",
+      "sha256": "06067d4f0d463f90ed803d5eca5b039a05dec5d70fc7b7cc254803a59bd0e27c"
+    },
+    "executable_sha256": "77bdff912b1c569b3e693fe126f619337c3e9d73dafbc4d0bf1d4f1f6a145761"
+  },
+  "ffmpeg": {
+    "version": "9.0.2",
+    "source": "https://www.gyan.dev/ffmpeg/builds/",
+    "release_metadata": "https://api.github.com/repos/GyanD/codexffmpeg/releases/tags/9.0.2",
+    "archive": {
+      "filename": "ffmpeg-9.0.2-essentials_build.zip",
+      "url": "https://github.com/GyanD/codexffmpeg/releases/download/9.0.2/ffmpeg-9.0.2-essentials_build.zip",
+      "sha256": "60f467265b1e312373dbcd92200c2618a74850f98d3d078e94296bb3fa2047ba"
+    },
+    "ffmpeg_sha256": "3256173f3f8bffd7df12227c68adf68025edb1832273a9530688a7bb1ed8edec",
+    "ffprobe_sha256": "f0d36ecbbdd3bcfac3efa078c96c7271c2e68b3810595552ac3b7f17e9a65c52",
+    "license": "GPLv3; preserve the distribution's license files alongside the local binaries."
+  },
+  "font": {
+    "name": "Gmarket Sans TTF Bold",
+    "source": "https://corp.gmarket.com/fonts/",
+    "archive": {
+      "filename": "GmarketSansTTF.zip",
+      "url": "https://corp.gmarket.com/fonts/GmarketSansTTF.zip",
+      "sha256": "a2cc0ab9eb3bc868a6f2affd89fa1d4718cb6e1226dcb695b05d0d2ff417ae02"
+    },
+    "filename": "GmarketSansTTFBold.ttf",
+    "sha256": "ff7c354dd1a324e4cecc1223c4f71e74fa81be7027e0c7f6324c475909cacefc",
+    "license": "SIL Open Font License, as declared by the official Gmarket font page",
+    "commercial_use": true,
+    "install_scope": "Project-local font file; no Windows font registration."
+  }
+}

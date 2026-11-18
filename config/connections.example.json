@@ -1,6 +1,28 @@
 {
-  "figma": {"file_key": null, "template_page_id": null, "edit_access_verified": false, "local_master_path": null},
-  "flow": {"expected_account_email": null, "account_verified_at": null},
-  "images": {"requested_model": "Image 2.5", "requested_quality": "high", "provider_capability_verified": false},
-  "tools": {"python": null, "ffmpeg": null, "ffprobe": null}
+  "figma": {
+    "file_key": null,
+    "template_page_id": null,
+    "edit_access_verified": false,
+    "local_master_path": null
+  },
+  "flow": {
+    "expected_account_email": null,
+    "account_verified_at": null
+  },
+  "images": {
+    "requested_model": "Image 2.5",
+    "requested_quality": "high",
+    "provider_capability_verified": false
+  },
+  "tools": {
+    "python": null,
+    "ffmpeg": null,
+    "ffprobe": null
+  },
+  "hadi": {
+    "gpt_url": null,
+    "display_name": "하디 무한상세페이지 프롬포트",
+    "verified_at": null,
+    "discovery": "existing_pinned_gpt_verify_title_and_instructions"
+  }
 }

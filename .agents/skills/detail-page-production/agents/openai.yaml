@@ -1,0 +1,6 @@
+interface:
+  display_name: "하디 상세페이지 제작"
+  short_description: "상품 URL·이미지에서 하디 원고와 Figma 상세페이지 4종 제작"
+  default_prompt: "$detail-page-production 상품 URL이나 첨부 이미지로 하디 원고를 생성하고 대표이미지, 편집 가능한 Figma, 상세페이지 PNG, 별도 제품정보 라벨 PNG를 제작해줘."
+policy:
+  allow_implicit_invocation: true

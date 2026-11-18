@@ -1,5 +1,8 @@
 {
   "schema_version": 1,
+  "default_profile": "hadi-four-set",
+  "default_profile_config": "config/hadi-four-set.json",
+  "legacy_video_profile_note": "Existing video fields and CLI contracts apply when video production is explicitly requested; default production follows hadi-four-set config.",
   "mode": "codex_local_agent",
   "handoff_after_manual_step": 4,
   "manual_steps": [

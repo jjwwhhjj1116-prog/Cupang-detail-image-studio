@@ -1,8 +1,16 @@
-# 상세페이지 자동 제작 업무 시작 규칙
+## 2026-11-18 기본 제작 계약
+
+현재 기본 워크프로세스는 `config/hadi-four-set.json`과 `.agents/skills/detail-page-production/SKILL.md`다. 상품 URL·이미지를 받으면 Codex가 실제 하디 GPT 입력, '끝', TYPE 선택, 원고 수령까지 수행한 뒤 Figma 템플릿 작업 사본을 채운다. 미지정 TYPE은 실제 추천과 제품 적합성으로 선택해 기록한다. 상세 실행은 `docs/hadi-four-set-workflow.md`와 `docs/hadi-prompt-intake.md`를 따른다.
+
+최종 기본 납품은 **① 흰배경 제품 단독 대표이미지 PNG ② 실제 편집 가능한 Figma 작업 링크 ③ Figma에서 내보낸 전체 상세페이지 PNG ④ 별도 제품정보 라벨 PNG**다. 제품정보는 전체 상세페이지에도 포함한다. 최신 판매자 정정이 우선이며 미확인 치수 행은 생략한다. '실측 미제공' 같은 부족 사유는 소비자용 출력에 넣지 않는다. 이 문서 아래의 수동 1~4단계와 영상 2개 필수 규칙은 영상 추가 제작을 지정한 기존 작업에 적용한다. 기본 4종 제작에 영상·Flow·Remotion은 필수가 아니다.
+
+스킬 전역 등록은 `scripts/install-hadi-skill.ps1`로 실제 저장소 경로를 연결한다. 다른 PC도 저장소를 복제해 같은 설치기를 실행한다. 사용자가 지정한 원본 .fig·개별 작업·자격증명을 공개 저장소로 보내지 않는다.
+
+# 영상 추가 제작의 기존 업무 규칙
 
 이 저장소는 개인 PC의 Codex가 제작을 실행하는 작업실이다. 작업 시작 시 `.agents/skills/detail-page-production/SKILL.md`와 `config/workflow.json`을 읽는다. 실제 제작은 사용자 요청이 있을 때 시작한다.
 
-새 PC의 첫 설정은 `docs/new-pc-setup.md`, `config/studio-portability.json`을 읽고 `scripts/setup-studio.ps1`을 실행한다. 누락된 도구와 고정 버전 Remotion 스킬을 저장소 범위에 자동 준비하고 `.local/doctor.json`을 확인한다. PC마다 `.local/machine.json`의 고유 ID를 작업명에 포함한다. 기존 사용자 설정·로그인 세션·작업 파일을 덮어쓰지 않는다. 설정 검사 통과와 실제 Figma/Flow/이미지 도구 연결 검증을 구분한다. 승인 얼굴·시트 6개는 `assets/models/`에 포함되어 다른 PC에서도 같은 SHA-256으로 사용한다.
+새 PC 기본 정적 제작 설정은 `docs/new-pc-setup.md`와 `config/studio-portability.json`을 읽고 `scripts/install-hadi-skill.ps1`로 등록한다. 사용 가능한 Python으로 `scripts/setup_portability.py --repo <작업본 루트>`를 실행해 PC 식별자와 연결 초안을 만든다. 영상 추가 제작이 지정됐을 때 `scripts/setup-studio.ps1`을 실행한다. 누락된 도구와 고정 버전 Remotion 스킬을 저장소 범위에 자동 준비하고 `.local/doctor.json`을 확인한다. PC마다 `.local/machine.json`의 고유 ID를 작업명에 포함한다. 기존 사용자 설정·로그인 세션·작업 파일을 덮어쓰지 않는다. 설정 검사 통과와 실제 Figma/Flow/이미지 도구 연결 검증을 구분한다. 승인 얼굴·시트 6개는 `assets/models/`에 포함되어 다른 PC에서도 같은 SHA-256으로 사용한다.
 
 매 작업은 이 PC의 `.local/runtime.json`에서 `python.path`, `node.path`, `ffmpeg.path`, `ffmpeg.ffprobe`, `font.path`를 읽는다. Python은 실제 경로로 실행하고 각 CLI의 `--node`, `--ffmpeg`, `--ffprobe`, `--font`로 필요한 실행 파일을 전달하거나 해당 프로세스에서만 PATH를 설정한다. 설치 스크립트는 시스템 PATH를 변경하지 않으므로 다른 채팅에서 기본 명령 이름만으로 portable 실행 파일을 찾을 것이라 가정하지 않는다.
 

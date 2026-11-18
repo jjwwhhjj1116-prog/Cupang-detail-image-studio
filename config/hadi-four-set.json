@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "profile": "hadi-four-set",
+  "default": true,
+  "input": [
+    "product_url",
+    "product_images"
+  ],
+  "prompt_generation": {
+    "provider": "existing_user_hadi_custom_gpt",
+    "display_name": "하디 무한상세페이지 프롬포트",
+    "gpt_url": null,
+    "local_override": ".local/connections.json:hadi.gpt_url",
+    "completion_signal": "끝",
+    "type_selection": "explicit_user_type_else_observed_gpt_recommendation",
+    "actual_response_required": true,
+    "display_aliases": [
+      "하디 무한상세페이지 프롬프트"
+    ],
+    "discovery": "existing_pinned_gpt_by_name_then_verify_title_instructions",
+    "service_notice_observed": "2026-11-18: UI announces GPT shutdown on December 11 and creator migration to plugin; reverify at execution"
+  },
+  "browser": "Aside",
+  "deliverables": [
+    "white_background_product_only_representative_png",
+    "editable_figma_design_link",
+    "figma_exported_detail_png",
+    "separate_product_information_png"
+  ],
+  "product_information": {
+    "include_in_detail": true,
+    "separate_export_same_frame": true,
+    "authority": "latest_seller_confirmed_product_facts",
+    "unknown_dimensions": "omit_row",
+    "free_size": "FREE_when_confirmed"
+  },
+  "video": {
+    "default_enabled": false,
+    "optional_legacy_workflow": "docs/production-workflow.md"
+  },
+  "validation": "scripts/static_delivery.py",
+  "agent": ".codex/agents/detail_production_coordinator.toml"
+}
